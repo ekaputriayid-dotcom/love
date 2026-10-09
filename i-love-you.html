@@ -1,0 +1,550 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>I Love You</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;1,400&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --pink: #ff7aa8;
+      --blush: #ffe4ec;
+      --glow: rgba(255, 122, 168, 0.4);
+    }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    html, body {
+      height: 100%;
+      overflow: hidden;
+      background: #000;
+      color: var(--blush);
+      font-family: "Cormorant Garamond", Georgia, serif;
+    }
+
+    body {
+      background:
+        radial-gradient(ellipse 55% 45% at 50% 58%, rgba(255, 80, 130, 0.07), transparent 70%),
+        #000;
+    }
+
+    #canvas {
+      position: fixed;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      display: block;
+      opacity: 0;
+      transition: opacity 1.6s ease;
+      z-index: 0;
+    }
+
+    #canvas.on { opacity: 1; }
+
+    .vignette {
+      pointer-events: none;
+      position: fixed;
+      inset: 0;
+      background:
+        radial-gradient(ellipse at 50% 42%, transparent 28%, rgba(0, 0, 0, 0.72) 100%);
+      z-index: 1;
+    }
+
+    .stage {
+      position: relative;
+      z-index: 2;
+      width: min(92vw, 640px);
+      text-align: center;
+      padding: 2rem 1.25rem;
+      display: grid;
+      place-items: center;
+      min-height: 100vh;
+      margin: 0 auto;
+    }
+
+    .prompt {
+      transition: opacity 1s ease, transform 1s ease;
+    }
+
+    .prompt.hidden {
+      opacity: 0;
+      transform: scale(0.97);
+      pointer-events: none;
+    }
+
+    .whisper {
+      font-size: clamp(0.95rem, 2.4vw, 1.15rem);
+      letter-spacing: 0.28em;
+      text-transform: uppercase;
+      color: rgba(255, 224, 233, 0.45);
+      margin-bottom: 1.75rem;
+      animation: breathe 4s ease-in-out infinite;
+    }
+
+    .input-wrap {
+      display: inline-block;
+      width: min(100%, 420px);
+    }
+
+    #loveInput {
+      width: 100%;
+      background: transparent;
+      border: none;
+      border-bottom: 1px solid rgba(255, 122, 168, 0.35);
+      outline: none;
+      color: var(--blush);
+      font-family: "Cormorant Garamond", Georgia, serif;
+      font-size: clamp(1.35rem, 4vw, 1.85rem);
+      font-style: italic;
+      text-align: center;
+      padding: 0.85rem 0.5rem 1rem;
+      letter-spacing: 0.06em;
+      caret-color: var(--pink);
+      transition: border-color 0.4s ease, box-shadow 0.4s ease;
+    }
+
+    #loveInput::placeholder {
+      color: rgba(255, 179, 201, 0.28);
+      font-style: italic;
+    }
+
+    #loveInput:focus {
+      border-bottom-color: var(--pink);
+      box-shadow: 0 1px 0 0 var(--pink), 0 18px 40px -28px var(--glow);
+    }
+
+    .hint {
+      margin-top: 1.5rem;
+      font-size: 0.95rem;
+      color: rgba(255, 179, 201, 0.4);
+      letter-spacing: 0.04em;
+    }
+
+    @keyframes breathe {
+      0%, 100% { opacity: 0.45; }
+      50% { opacity: 0.75; }
+    }
+
+    @media (max-width: 480px) {
+      .whisper { letter-spacing: 0.18em; }
+    }
+  </style>
+</head>
+<body>
+  <canvas id="canvas"></canvas>
+  <div class="vignette" aria-hidden="true"></div>
+
+  <main class="stage">
+    <section class="prompt" id="prompt">
+      <p class="whisper">ketik sesuatu yang tersimpan di hati</p>
+      <div class="input-wrap">
+        <input
+          id="loveInput"
+          type="text"
+          autocomplete="off"
+          spellcheck="false"
+          placeholder="tulis di sini…"
+          aria-label="Ketik I LOVE YOU"
+        />
+      </div>
+      <p class="hint">satu kalimat. tiga kata. segalanya.</p>
+    </section>
+  </main>
+
+  <script type="importmap">
+  {
+    "imports": {
+      "three": "https://unpkg.com/three@0.160.0/build/three.module.js",
+      "three/addons/": "https://unpkg.com/three@0.160.0/examples/jsm/"
+    }
+  }
+  </script>
+
+  <script type="module">
+    import * as THREE from "three";
+    import { EffectComposer } from "three/addons/postprocessing/EffectComposer.js";
+    import { RenderPass } from "three/addons/postprocessing/RenderPass.js";
+    import { UnrealBloomPass } from "three/addons/postprocessing/UnrealBloomPass.js";
+
+    const TARGET = "I LOVE YOU";
+    const COUNT = 16000;
+    const FORM_DURATION = 3.2;
+    const SPIN_SPEED = 0.22;
+
+    const input = document.getElementById("loveInput");
+    const prompt = document.getElementById("prompt");
+    const canvas = document.getElementById("canvas");
+
+    let unlocked = false;
+    let forming = false;
+    let formProgress = 0;
+    let startTime = 0;
+    let spinAmount = 0;
+    let spinEase = 0;
+
+    const scene = new THREE.Scene();
+    scene.fog = new THREE.FogExp2(0x000000, 0.028);
+
+    const camera = new THREE.PerspectiveCamera(50, window.innerWidth / window.innerHeight, 0.1, 100);
+    camera.position.set(0, 0.2, 6.4);
+
+    const renderer = new THREE.WebGLRenderer({
+      canvas,
+      antialias: true,
+      alpha: false,
+      powerPreference: "high-performance",
+    });
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+    renderer.setSize(window.innerWidth, window.innerHeight);
+    renderer.setClearColor(0x000000, 1);
+    renderer.toneMapping = THREE.ACESFilmicToneMapping;
+    renderer.toneMappingExposure = 0.92;
+
+    const composer = new EffectComposer(renderer);
+    composer.addPass(new RenderPass(scene, camera));
+    const bloom = new UnrealBloomPass(
+      new THREE.Vector2(window.innerWidth, window.innerHeight),
+      0.55,
+      0.48,
+      0.28
+    );
+    composer.addPass(bloom);
+
+    function insideHeart(x, y, z) {
+      const a = x * x + 2.25 * y * y + z * z - 1;
+      return a * a * a - x * x * z * z * z - 0.1125 * y * y * z * z * z <= 0;
+    }
+
+    function sampleHeartPoint() {
+      let x, y, z;
+      let tries = 0;
+      do {
+        x = (Math.random() * 2 - 1) * 1.35;
+        y = (Math.random() * 2 - 1) * 1.25;
+        z = (Math.random() * 2 - 1) * 1.2;
+        tries++;
+      } while (!insideHeart(x, y, z) && tries < 90);
+
+      if (tries >= 90) {
+        const t = Math.random() * Math.PI * 2;
+        const u = 0.65 + Math.random() * 0.35;
+        x = 16 * Math.pow(Math.sin(t), 3) * 0.048 * u;
+        z = (13 * Math.cos(t) - 5 * Math.cos(2 * t) - 2 * Math.cos(3 * t) - Math.cos(4 * t)) * 0.048 * u;
+        y = (Math.random() - 0.5) * 0.5;
+        return new THREE.Vector3(x * 1.25, z * 1.25 + 0.3, y * 1.25);
+      }
+
+      return new THREE.Vector3(x * 1.4, z * 1.4 + 0.3, y * 1.4);
+    }
+
+    function randomScatter() {
+      const r = 4 + Math.random() * 6;
+      const theta = Math.random() * Math.PI * 2;
+      const phi = Math.acos(2 * Math.random() - 1);
+      return new THREE.Vector3(
+        r * Math.sin(phi) * Math.cos(theta),
+        r * Math.sin(phi) * Math.sin(theta) * 0.65,
+        r * Math.cos(phi)
+      );
+    }
+
+    const targets = new Float32Array(COUNT * 3);
+    const starts = new Float32Array(COUNT * 3);
+    const positions = new Float32Array(COUNT * 3);
+    const colors = new Float32Array(COUNT * 3);
+    const sizes = new Float32Array(COUNT);
+    const phases = new Float32Array(COUNT);
+
+    // Romantic gradient: tip deep rose → mid magenta → lobe soft blush
+    const cDeep = new THREE.Color("#c9184a");
+    const cRose = new THREE.Color("#ff4d8d");
+    const cSoft = new THREE.Color("#ff9ec0");
+    const cBlush = new THREE.Color("#ffc2d6");
+    const tmp = new THREE.Color();
+
+    for (let i = 0; i < COUNT; i++) {
+      const p = sampleHeartPoint();
+      const s = randomScatter();
+      const i3 = i * 3;
+
+      targets[i3] = p.x;
+      targets[i3 + 1] = p.y;
+      targets[i3 + 2] = p.z;
+
+      starts[i3] = s.x;
+      starts[i3 + 1] = s.y;
+      starts[i3 + 2] = s.z;
+
+      positions[i3] = s.x;
+      positions[i3 + 1] = s.y;
+      positions[i3 + 2] = s.z;
+
+      // color by height + slight depth for 3D shading feel
+      const h = THREE.MathUtils.clamp((p.y + 1.1) / 2.6, 0, 1);
+      const depth = THREE.MathUtils.clamp((p.z + 1.2) / 2.4, 0, 1);
+
+      if (h < 0.35) {
+        tmp.copy(cDeep).lerp(cRose, h / 0.35);
+      } else if (h < 0.7) {
+        tmp.copy(cRose).lerp(cSoft, (h - 0.35) / 0.35);
+      } else {
+        tmp.copy(cSoft).lerp(cBlush, (h - 0.7) / 0.3);
+      }
+
+      // front faces a touch brighter, back a touch deeper
+      tmp.multiplyScalar(0.82 + depth * 0.28);
+
+      colors[i3] = tmp.r;
+      colors[i3 + 1] = tmp.g;
+      colors[i3 + 2] = tmp.b;
+
+      sizes[i] = 0.01 + Math.random() * 0.026 + (1 - h) * 0.006;
+      phases[i] = Math.random() * Math.PI * 2;
+    }
+
+    const geometry = new THREE.BufferGeometry();
+    geometry.setAttribute("position", new THREE.BufferAttribute(positions, 3));
+    geometry.setAttribute("color", new THREE.BufferAttribute(colors, 3));
+    geometry.setAttribute("aSize", new THREE.BufferAttribute(sizes, 1));
+
+    const material = new THREE.ShaderMaterial({
+      transparent: true,
+      depthWrite: false,
+      blending: THREE.AdditiveBlending,
+      vertexColors: true,
+      uniforms: {
+        uPixelRatio: { value: Math.min(window.devicePixelRatio, 2) },
+        uTime: { value: 0 },
+      },
+      vertexShader: `
+        attribute float aSize;
+        uniform float uPixelRatio;
+        uniform float uTime;
+        varying vec3 vColor;
+        varying float vAlpha;
+        void main() {
+          vColor = color;
+          vec4 mv = modelViewMatrix * vec4(position, 1.0);
+          float distFade = clamp(2.5 / max(-mv.z, 0.1), 0.4, 1.2);
+          float twinkle = 0.88 + 0.12 * sin(uTime * 1.6 + position.x * 3.5 + position.y * 2.8);
+          vAlpha = twinkle;
+          gl_PointSize = aSize * uPixelRatio * 220.0 * distFade;
+          gl_Position = projectionMatrix * mv;
+        }
+      `,
+      fragmentShader: `
+        varying vec3 vColor;
+        varying float vAlpha;
+        void main() {
+          vec2 uv = gl_PointCoord - 0.5;
+          float d = length(uv);
+          if (d > 0.5) discard;
+          float soft = pow(1.0 - smoothstep(0.0, 0.5, d), 1.6);
+          vec3 col = vColor * 0.78;
+          gl_FragColor = vec4(col, soft * vAlpha * 0.38);
+        }
+      `,
+    });
+
+    const heartGroup = new THREE.Group();
+    const points = new THREE.Points(geometry, material);
+    heartGroup.add(points);
+    scene.add(heartGroup);
+
+    // soft glowing platform
+    const baseGeo = new THREE.RingGeometry(0.4, 1.95, 128);
+    const baseMat = new THREE.MeshBasicMaterial({
+      color: new THREE.Color("#ff6b9d"),
+      transparent: true,
+      opacity: 0.14,
+      side: THREE.DoubleSide,
+      blending: THREE.AdditiveBlending,
+      depthWrite: false,
+    });
+    const base = new THREE.Mesh(baseGeo, baseMat);
+    base.rotation.x = -Math.PI / 2;
+    base.position.y = -1.6;
+    base.visible = false;
+    scene.add(base);
+
+    const baseInnerGeo = new THREE.CircleGeometry(0.55, 64);
+    const baseInnerMat = new THREE.MeshBasicMaterial({
+      color: new THREE.Color("#ff8fb3"),
+      transparent: true,
+      opacity: 0.12,
+      blending: THREE.AdditiveBlending,
+      depthWrite: false,
+    });
+    const baseInner = new THREE.Mesh(baseInnerGeo, baseInnerMat);
+    baseInner.rotation.x = -Math.PI / 2;
+    baseInner.position.y = -1.59;
+    baseInner.visible = false;
+    scene.add(baseInner);
+
+    const baseOuterGeo = new THREE.RingGeometry(1.95, 2.35, 128);
+    const baseOuterMat = new THREE.MeshBasicMaterial({
+      color: new THREE.Color("#ff4d88"),
+      transparent: true,
+      opacity: 0.06,
+      side: THREE.DoubleSide,
+      blending: THREE.AdditiveBlending,
+      depthWrite: false,
+    });
+    const baseOuter = new THREE.Mesh(baseOuterGeo, baseOuterMat);
+    baseOuter.rotation.x = -Math.PI / 2;
+    baseOuter.position.y = -1.61;
+    baseOuter.visible = false;
+    scene.add(baseOuter);
+
+    // ambient sparkles
+    const dustCount = 1200;
+    const dustPos = new Float32Array(dustCount * 3);
+    const dustCol = new Float32Array(dustCount * 3);
+    for (let i = 0; i < dustCount; i++) {
+      dustPos[i * 3] = (Math.random() - 0.5) * 16;
+      dustPos[i * 3 + 1] = (Math.random() - 0.5) * 11;
+      dustPos[i * 3 + 2] = (Math.random() - 0.5) * 16;
+      const shade = 0.55 + Math.random() * 0.45;
+      dustCol[i * 3] = shade;
+      dustCol[i * 3 + 1] = shade * 0.55;
+      dustCol[i * 3 + 2] = shade * 0.68;
+    }
+    const dustGeo = new THREE.BufferGeometry();
+    dustGeo.setAttribute("position", new THREE.BufferAttribute(dustPos, 3));
+    dustGeo.setAttribute("color", new THREE.BufferAttribute(dustCol, 3));
+    const dustMat = new THREE.PointsMaterial({
+      size: 0.016,
+      transparent: true,
+      opacity: 0.35,
+      vertexColors: true,
+      blending: THREE.AdditiveBlending,
+      depthWrite: false,
+    });
+    const dust = new THREE.Points(dustGeo, dustMat);
+    dust.visible = false;
+    scene.add(dust);
+
+    function easeInOutCubic(t) {
+      return t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
+    }
+
+    function updateFormation(t) {
+      const pos = geometry.attributes.position.array;
+      for (let i = 0; i < COUNT; i++) {
+        const i3 = i * 3;
+        const stagger = (i % 260) / 260;
+        const local = Math.min(1, Math.max(0, (t - stagger * 0.4) / 0.6));
+        const e = easeInOutCubic(local);
+        pos[i3] = starts[i3] + (targets[i3] - starts[i3]) * e;
+        pos[i3 + 1] = starts[i3 + 1] + (targets[i3 + 1] - starts[i3 + 1]) * e;
+        pos[i3 + 2] = starts[i3 + 2] + (targets[i3 + 2] - starts[i3 + 2]) * e;
+      }
+      geometry.attributes.position.needsUpdate = true;
+    }
+
+    function breatheHeart(time) {
+      const pos = geometry.attributes.position.array;
+      for (let i = 0; i < COUNT; i++) {
+        const i3 = i * 3;
+        const breath = 1 + Math.sin(time * 1.15 + phases[i]) * 0.01;
+        const wobble = Math.sin(time * 1.4 + phases[i] * 1.7) * 0.005;
+        pos[i3] = targets[i3] * breath + wobble;
+        pos[i3 + 1] = targets[i3 + 1] * breath;
+        pos[i3 + 2] = targets[i3 + 2] * breath + wobble * 0.5;
+      }
+      geometry.attributes.position.needsUpdate = true;
+    }
+
+    const clock = new THREE.Clock();
+    let last = performance.now();
+
+    function animate(now) {
+      requestAnimationFrame(animate);
+      const delta = Math.min(0.05, (now - last) / 1000);
+      last = now;
+      const elapsed = clock.getElapsedTime();
+      material.uniforms.uTime.value = elapsed;
+
+      if (unlocked) {
+        if (forming) {
+          formProgress = Math.min(1, (performance.now() - startTime) / (FORM_DURATION * 1000));
+          updateFormation(formProgress);
+          // gently start turning while forming
+          spinEase = THREE.MathUtils.damp(spinEase, 0.35, 1.2, delta);
+          if (formProgress >= 1) forming = false;
+        } else {
+          breatheHeart(elapsed);
+          spinEase = THREE.MathUtils.damp(spinEase, 1, 1.8, delta);
+        }
+
+        spinAmount += SPIN_SPEED * spinEase * delta;
+        heartGroup.rotation.y = spinAmount;
+        heartGroup.rotation.x = Math.sin(spinAmount * 0.55) * 0.1;
+        heartGroup.rotation.z = Math.sin(spinAmount * 0.35) * 0.035;
+
+        // soft camera drift
+        camera.position.x = Math.sin(elapsed * 0.12) * 0.15;
+        camera.position.y = 0.2 + Math.sin(elapsed * 0.18) * 0.06;
+        camera.lookAt(0, 0.15, 0);
+
+        base.rotation.z = elapsed * 0.18;
+        baseInner.rotation.z = -elapsed * 0.12;
+        baseOuter.rotation.z = elapsed * 0.08;
+        const pulse = 0.11 + Math.sin(elapsed * 1.2) * 0.03;
+        baseMat.opacity = pulse;
+        baseInnerMat.opacity = pulse * 0.85;
+        baseOuterMat.opacity = pulse * 0.45;
+        dust.rotation.y = elapsed * 0.03;
+      }
+
+      composer.render();
+    }
+    requestAnimationFrame(animate);
+
+    function unlock() {
+      if (unlocked) return;
+      unlocked = true;
+      forming = true;
+      formProgress = 0;
+      startTime = performance.now();
+      spinEase = 0;
+      spinAmount = 0;
+
+      input.blur();
+      prompt.classList.add("hidden");
+      canvas.classList.add("on");
+      base.visible = true;
+      baseInner.visible = true;
+      baseOuter.visible = true;
+      dust.visible = true;
+    }
+
+    function normalize(value) {
+      return value.trim().toUpperCase().replace(/\s+/g, " ");
+    }
+
+    input.addEventListener("input", () => {
+      if (normalize(input.value) === TARGET) unlock();
+    });
+
+    input.addEventListener("keydown", (e) => {
+      if (e.key === "Enter" && normalize(input.value) === TARGET) unlock();
+    });
+
+    window.addEventListener("resize", () => {
+      const w = window.innerWidth;
+      const h = window.innerHeight;
+      camera.aspect = w / h;
+      camera.updateProjectionMatrix();
+      renderer.setSize(w, h);
+      composer.setSize(w, h);
+      material.uniforms.uPixelRatio.value = Math.min(window.devicePixelRatio, 2);
+      bloom.setSize(w, h);
+    });
+
+    window.addEventListener("load", () => input.focus());
+  </script>
+</body>
+</html>
