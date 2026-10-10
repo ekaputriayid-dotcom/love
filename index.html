@@ -252,9 +252,10 @@
     const scene = new THREE.Scene();
     scene.fog = new THREE.FogExp2(0x050308, 0.018);
 
-    const camera = new THREE.PerspectiveCamera(55, window.innerWidth / window.innerHeight, 0.1, 200);
-    camera.position.set(0, 10, 22);
-    camera.lookAt(0, 1.5, 0);
+    const camera = new THREE.PerspectiveCamera(50, window.innerWidth / window.innerHeight, 0.1, 200);
+    // Fixed elevated view so circular orbits read clearly as ellipses in 3D
+    camera.position.set(0, 11.5, 24);
+    camera.lookAt(0, 1.2, 0);
 
     const renderer = new THREE.WebGLRenderer({
       canvas,
@@ -279,6 +280,11 @@
 
     const root = new THREE.Group();
     scene.add(root);
+
+    // Everything that orbits sits on this tilted galaxy plane (like the VT)
+    const orbitPlane = new THREE.Group();
+    orbitPlane.rotation.x = -0.72; // tilt disk toward camera
+    root.add(orbitPlane);
 
     // —— Stars ——
     {
@@ -351,8 +357,7 @@
         sizeAttenuation: true,
       });
       const galaxy = new THREE.Points(geo, mat);
-      galaxy.rotation.x = -0.55;
-      root.add(galaxy);
+      orbitPlane.add(galaxy);
       return galaxy;
     }
     const galaxy = makeGalaxy();
@@ -459,17 +464,19 @@
       const heartMesh = new THREE.Mesh(heartGeo, heartMat.clone());
       heartMesh.material.color.setHSL(0.92 + Math.random() * 0.06, 0.9, 0.55 + Math.random() * 0.15);
       heartMesh.userData = {
-        radius: 4 + Math.random() * 14,
+        radius: 5 + Math.random() * 12,
         angle: Math.random() * Math.PI * 2,
-        ySpeed: 0.2 + Math.random() * 0.6,
-        yOffset: -3 + Math.random() * 6,
+        // stay near the galaxy disk so orbit looks round, not floating randomly
+        yOffset: (Math.random() - 0.5) * 1.2,
         spin: randSpin(),
+        // farther objects orbit slower (more natural)
+        speed: 0.55 + Math.random() * 0.35,
       };
       heartMesh.position.x = Math.cos(heartMesh.userData.angle) * heartMesh.userData.radius;
       heartMesh.position.z = Math.sin(heartMesh.userData.angle) * heartMesh.userData.radius;
       heartMesh.position.y = heartMesh.userData.yOffset;
       heartMesh.scale.setScalar(0.35 + Math.random() * 0.45);
-      root.add(heartMesh);
+      orbitPlane.add(heartMesh);
       orbitHearts.push(heartMesh);
     }
 
@@ -577,9 +584,11 @@
         map: tex,
         transparent: true,
         depthWrite: false,
+        sizeAttenuation: true,
       });
       const sprite = new THREE.Sprite(mat);
-      const radius = 6.5 + (index % 3) * 2.8;
+      // evenly spaced on a clear ring around the heart
+      const radius = 9.5 + (index % 2) * 2.4;
       const angle = (index / ICONS.length) * Math.PI * 2;
       sprite.userData = {
         type: "icon",
@@ -587,17 +596,18 @@
         icon,
         radius,
         angle,
-        ySpeed: 0.35 + Math.random() * 0.35,
-        yOffset: -1.2 + (index % 3) * 1.4,
+        yOffset: (index % 2 === 0 ? -0.25 : 0.35),
+        speed: 0.42,
+        baseScale: 2.2,
         opened: false,
       };
-      sprite.scale.set(2.1, 2.1, 1);
+      sprite.scale.set(2.2, 2.2, 1);
       sprite.position.set(
         Math.cos(angle) * radius,
         sprite.userData.yOffset,
         Math.sin(angle) * radius
       );
-      root.add(sprite);
+      orbitPlane.add(sprite);
       iconMeshes.push(sprite);
     });
 
@@ -631,13 +641,13 @@
         })
       );
       sprite.userData = {
-        radius: 8 + (index % 4) * 2.2,
-        angle: (index / FLOAT_WORDS.length) * Math.PI * 2 + 0.4,
-        yOffset: -2 + (index % 4) * 1.3,
-        ySpeed: 0.25 + Math.random() * 0.3,
+        radius: 11 + (index % 3) * 2.0,
+        angle: (index / FLOAT_WORDS.length) * Math.PI * 2 + 0.55,
+        yOffset: (index % 2 === 0 ? 0.2 : -0.3),
+        speed: 0.28,
       };
       sprite.scale.set(4.2, 1.05, 1);
-      root.add(sprite);
+      orbitPlane.add(sprite);
       wordSprites.push(sprite);
     });
 
@@ -692,14 +702,8 @@
       if (paused || finale.classList.contains("show") || finaleMode) return;
       setPointer(e);
       const hit = pickIcon();
-      if (hovered && hovered !== hit) hovered.scale.set(2.1, 2.1, 1);
       hovered = hit;
-      if (hovered) {
-        hovered.scale.set(2.55, 2.55, 1);
-        canvas.style.cursor = "pointer";
-      } else {
-        canvas.style.cursor = "default";
-      }
+      canvas.style.cursor = hovered ? "pointer" : "default";
     });
 
     window.addEventListener("pointerdown", (e) => {
@@ -733,8 +737,14 @@
 
     // —— Animate ——
     const clock = new THREE.Clock();
-    let camAngle = 0.35;
     let lastT = 0;
+
+    function placeOnOrbit(obj, angle, radius, y) {
+      // circular orbit on the tilted galaxy plane (local XZ)
+      obj.position.x = Math.cos(angle) * radius;
+      obj.position.z = Math.sin(angle) * radius;
+      obj.position.y = y;
+    }
 
     function animate() {
       requestAnimationFrame(animate);
@@ -743,7 +753,9 @@
       lastT = t;
 
       if (!paused) {
-        galaxy.rotation.z = t * 0.08;
+        // spin the galaxy disk itself
+        galaxy.rotation.y = t * 0.05;
+
         if (centerHeart) {
           centerHeart.rotation.y = t * 0.35;
           const breath = 1 + Math.sin(t * 1.6) * 0.03;
@@ -753,40 +765,37 @@
           }
         }
 
+        // true orbital motion: angle increases, position = cos/sin on plane
         for (const h of orbitHearts) {
           const d = h.userData;
-          d.angle += delta * (0.15 + (1 / d.radius) * 0.8);
-          h.position.x = Math.cos(d.angle) * d.radius;
-          h.position.z = Math.sin(d.angle) * d.radius;
-          h.position.y = d.yOffset + Math.sin(t * d.ySpeed + d.angle) * 0.45;
+          d.angle += delta * (d.speed / Math.sqrt(d.radius));
+          placeOnOrbit(h, d.angle, d.radius, d.yOffset);
           h.rotation.y += delta * d.spin;
-          h.rotation.x += delta * 0.4;
+          h.rotation.x += delta * 0.35;
         }
 
         for (const s of iconMeshes) {
           const d = s.userData;
-          d.angle += delta * (0.22 + (1 / d.radius) * 0.35);
-          s.position.x = Math.cos(d.angle) * d.radius;
-          s.position.z = Math.sin(d.angle) * d.radius;
-          s.position.y = d.yOffset + Math.sin(t * d.ySpeed + d.angle) * 0.55;
+          d.angle += delta * (d.speed / Math.sqrt(d.radius));
+          placeOnOrbit(s, d.angle, d.radius, d.yOffset);
+          // slight bob so they feel alive, but stay on the ring
+          s.position.y = d.yOffset + Math.sin(t * 1.4 + d.angle) * 0.15;
+          const pulse = hovered === s ? 1.18 : 1;
+          s.scale.setScalar(d.baseScale * pulse);
         }
 
         for (const s of wordSprites) {
           const d = s.userData;
-          d.angle += delta * 0.12;
-          s.position.x = Math.cos(d.angle) * d.radius;
-          s.position.z = Math.sin(d.angle) * d.radius;
-          s.position.y = d.yOffset + Math.sin(t * d.ySpeed) * 0.35;
+          d.angle += delta * (d.speed / Math.sqrt(d.radius));
+          placeOnOrbit(s, d.angle, d.radius, d.yOffset);
           s.material.opacity = 0.55 + Math.sin(t * 2 + d.angle) * 0.25;
         }
 
-        // slow cinematic orbit camera
-        camAngle += delta * 0.12;
-        const camR = 22;
-        camera.position.x = Math.sin(camAngle) * camR;
-        camera.position.z = Math.cos(camAngle) * camR;
-        camera.position.y = 9.5 + Math.sin(t * 0.35) * 0.8;
-        camera.lookAt(0, 1.8, 0);
+        // camera stays put — only a tiny breath so orbit path is obvious
+        camera.position.x = Math.sin(t * 0.08) * 0.35;
+        camera.position.y = 11.5 + Math.sin(t * 0.2) * 0.25;
+        camera.position.z = 24;
+        camera.lookAt(0, 1.2, 0);
       }
 
       composer.render();
