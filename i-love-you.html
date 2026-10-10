@@ -186,7 +186,7 @@
     <p>Tap the icons orbiting the heart-sun</p>
     <p class="progress" id="progress">0 / 6 opened</p>
   </div>
-  <p class="hint-drag" id="hintDrag">Drag to spin · Pinch to zoom</p>
+  <p class="hint-drag" id="hintDrag">Drag anywhere to rotate · Pinch to zoom</p>
 
   <div class="modal" id="modal">
     <div class="modal-card">
@@ -234,8 +234,14 @@
       { kind: "emoji", emoji: "💘", label: "Cupid", text: "I like you more than words can say." },
     ];
 
-    // Each icon gets its own planet-like orbit radius
-    const ORBITS = [5.2, 6.8, 8.4, 10.0, 11.6, 13.2];
+    const FLOAT_WORDS = [
+      "I LIKE YOU",
+      "YOU'RE MAGIC",
+      "ALWAYS TOGETHER",
+      "MY HEART",
+      "FOREVER",
+      "BE MINE",
+    ];
 
     const canvas = document.getElementById("c");
     const hud = document.getElementById("hud");
@@ -256,12 +262,13 @@
     let answer = null;
     let pointerDown = null;
     let dragged = false;
+    let hovered = null;
 
     const scene = new THREE.Scene();
     scene.fog = new THREE.FogExp2(0x030208, 0.012);
 
     const camera = new THREE.PerspectiveCamera(50, window.innerWidth / window.innerHeight, 0.1, 200);
-    camera.position.set(0, 9, 20);
+    camera.position.set(14, 8, 18);
 
     const renderer = new THREE.WebGLRenderer({
       canvas,
@@ -279,13 +286,17 @@
     controls.dampingFactor = 0.08;
     controls.enablePan = true;
     controls.enableZoom = true;
-    controls.minDistance = 8;
-    controls.maxDistance = 42;
-    controls.target.set(0, 0.6, 0);
+    controls.enableRotate = true;
+    controls.minDistance = 6;
+    controls.maxDistance = 48;
+    controls.target.set(0, 1.4, 0);
+    // Full 360° — not locked to top/bottom only
+    controls.minPolarAngle = 0;
+    controls.maxPolarAngle = Math.PI;
     controls.autoRotate = false;
-    controls.rotateSpeed = 0.7;
+    controls.rotateSpeed = 0.85;
     controls.zoomSpeed = 0.9;
-    controls.panSpeed = 0.6;
+    controls.panSpeed = 0.65;
 
     const composer = new EffectComposer(renderer);
     composer.addPass(new RenderPass(scene, camera));
@@ -321,25 +332,14 @@
       })));
     }
 
-    // Soft nebula glow under the heart-sun
-    {
-      const glow = new THREE.Mesh(
-        new THREE.SphereGeometry(2.8, 32, 32),
-        new THREE.MeshBasicMaterial({
-          color: 0xff4d8d,
-          transparent: true,
-          opacity: 0.14,
-          blending: THREE.AdditiveBlending,
-          depthWrite: false,
-        })
-      );
-      glow.position.y = 1.2;
-      scene.add(glow);
-    }
+    // Whole universe tilts like the VT (you can still rotate view anywhere)
+    const universe = new THREE.Group();
+    universe.rotation.x = -0.52;
+    scene.add(universe);
 
-    // —— Spiral galaxy disk under the heart (like the VT) ——
+    // —— Spiral galaxy disk (natural ring, not perfect circles) ——
     function makeGalaxyDisk() {
-      const count = 8000;
+      const count = 9500;
       const pos = new Float32Array(count * 3);
       const col = new Float32Array(count * 3);
       const c1 = new THREE.Color("#ff4da6");
@@ -350,17 +350,17 @@
       for (let i = 0; i < count; i++) {
         const arm = i % 3;
         const t = i / count;
-        const radius = Math.pow(t, 0.62) * 11;
-        const spin = radius * 0.55 + arm * ((Math.PI * 2) / 3);
-        const angle = spin + t * Math.PI * 4;
-        const spread = (Math.random() - 0.5) * (0.3 + radius * 0.07);
-        pos[i * 3] = Math.cos(angle) * radius + Math.cos(angle) * spread;
-        pos[i * 3 + 2] = Math.sin(angle) * radius + Math.sin(angle) * spread;
-        pos[i * 3 + 1] = (Math.random() - 0.5) * (0.25 + (1 - t) * 0.55);
+        const radius = Math.pow(t, 0.58) * 13;
+        const spin = radius * 0.52 + arm * ((Math.PI * 2) / 3);
+        const angle = spin + t * Math.PI * 4.2;
+        const spread = (Math.random() - 0.5) * (0.45 + radius * 0.09);
+        pos[i * 3] = Math.cos(angle) * radius + Math.cos(angle + 0.4) * spread;
+        pos[i * 3 + 2] = Math.sin(angle) * radius + Math.sin(angle + 0.4) * spread;
+        pos[i * 3 + 1] = (Math.random() - 0.5) * (0.18 + (1 - t) * 0.35);
 
         if (t < 0.35) tmp.copy(c2).lerp(c1, t / 0.35);
         else tmp.copy(c1).lerp(c3, (t - 0.35) / 0.65);
-        tmp.multiplyScalar(0.9 + Math.random() * 0.3);
+        tmp.multiplyScalar(0.9 + Math.random() * 0.35);
         col[i * 3] = tmp.r;
         col[i * 3 + 1] = tmp.g;
         col[i * 3 + 2] = tmp.b;
@@ -369,79 +369,86 @@
       const geo = new THREE.BufferGeometry();
       geo.setAttribute("position", new THREE.BufferAttribute(pos, 3));
       geo.setAttribute("color", new THREE.BufferAttribute(col, 3));
-      const galaxy = new THREE.Points(
+      return new THREE.Points(
         geo,
         new THREE.PointsMaterial({
-          size: 0.11,
+          size: 0.1,
           vertexColors: true,
           transparent: true,
-          opacity: 0.9,
+          opacity: 0.92,
           blending: THREE.AdditiveBlending,
           depthWrite: false,
           sizeAttenuation: true,
         })
       );
-      galaxy.rotation.x = -0.55;
-      return galaxy;
     }
     const galaxy = makeGalaxyDisk();
-    scene.add(galaxy);
+    universe.add(galaxy);
 
-    // —— Heart-sun as glowing particle cloud (VT style) ——
-    function insideHeart(x, y, z) {
-      const a = x * x + 2.25 * y * y + z * z - 1;
-      return a * a * a - x * x * z * z * z - 0.1125 * y * y * z * z * z <= 0;
+    // Soft glow at galaxy center
+    const coreGlow = new THREE.Mesh(
+      new THREE.SphereGeometry(1.6, 24, 24),
+      new THREE.MeshBasicMaterial({
+        color: 0xff4d8d,
+        transparent: true,
+        opacity: 0.18,
+        blending: THREE.AdditiveBlending,
+        depthWrite: false,
+      })
+    );
+    coreGlow.position.y = 0.15;
+    universe.add(coreGlow);
+
+    // —— Flat 2D particle heart (VT style, always faces camera) ——
+    function sampleFlatHeart() {
+      const t = Math.random() * Math.PI * 2;
+      const hx = 16 * Math.pow(Math.sin(t), 3);
+      const hy =
+        13 * Math.cos(t) -
+        5 * Math.cos(2 * t) -
+        2 * Math.cos(3 * t) -
+        Math.cos(4 * t);
+      const fill = 0.25 + Math.random() * 0.75;
+      const s = 0.105 * Math.sqrt(fill);
+      return { x: hx * s, y: hy * s };
     }
 
     function makeHeartSun(broken = false) {
       const group = new THREE.Group();
-      const count = 9000;
+      group.userData.billboard = true;
+      const count = 7500;
       const pos = new Float32Array(count * 3);
       const col = new Float32Array(count * 3);
       const cTip = new THREE.Color("#ff1a66");
       const cMid = new THREE.Color("#ff4d9a");
-      const cTop = new THREE.Color("#ffb3d4");
+      const cTop = new THREE.Color("#ffc0d8");
       const tmp = new THREE.Color();
 
-      let i = 0;
-      let guard = 0;
-      while (i < count && guard < count * 40) {
-        guard++;
-        let x = (Math.random() * 2 - 1) * 1.35;
-        let y = (Math.random() * 2 - 1) * 1.25;
-        let z = (Math.random() * 2 - 1) * 1.2;
-        if (!insideHeart(x, y, z)) continue;
-
-        // Algebraic heart points along Z → map Z to up (Y)
-        let px = x * 2.35;
-        let py = z * 2.35 + 2.15;
-        let pz = y * 2.35;
-
+      for (let i = 0; i < count; i++) {
+        let { x, y } = sampleFlatHeart();
         if (broken) {
-          const side = px >= 0 ? 1 : -1;
-          px += side * 1.25;
-          py -= 0.25;
-          if (Math.abs(x) < 0.2) {
-            px += side * 0.45;
-            py -= 0.55 + Math.random() * 0.5;
+          const side = x >= 0 ? 1 : -1;
+          x += side * 0.55;
+          y -= 0.35;
+          if (Math.abs(x) < 0.35) {
+            x += side * 0.35;
+            y -= 0.45 + Math.random() * 0.35;
           }
         }
 
         const i3 = i * 3;
-        pos[i3] = px;
-        pos[i3 + 1] = py;
-        pos[i3 + 2] = pz;
+        pos[i3] = x;
+        pos[i3 + 1] = y + 0.15;
+        pos[i3 + 2] = (Math.random() - 0.5) * 0.06;
 
-        const h = THREE.MathUtils.clamp((py - 0.4) / 4.4, 0, 1);
-        if (h < 0.4) tmp.copy(cTip).lerp(cMid, h / 0.4);
-        else tmp.copy(cMid).lerp(cTop, (h - 0.4) / 0.6);
-        if (broken) tmp.lerp(new THREE.Color("#6a4455"), 0.4);
-        // brighter core particles
-        tmp.multiplyScalar(0.95 + Math.random() * 0.35);
+        const h = THREE.MathUtils.clamp((y + 1.2) / 3.2, 0, 1);
+        if (h < 0.45) tmp.copy(cTip).lerp(cMid, h / 0.45);
+        else tmp.copy(cMid).lerp(cTop, (h - 0.45) / 0.55);
+        if (broken) tmp.lerp(new THREE.Color("#6a4455"), 0.45);
+        tmp.multiplyScalar(0.92 + Math.random() * 0.35);
         col[i3] = tmp.r;
         col[i3 + 1] = tmp.g;
         col[i3 + 2] = tmp.b;
-        i++;
       }
 
       const geo = new THREE.BufferGeometry();
@@ -450,90 +457,110 @@
       const points = new THREE.Points(
         geo,
         new THREE.PointsMaterial({
-          size: broken ? 0.085 : 0.1,
+          size: broken ? 0.11 : 0.13,
           vertexColors: true,
           transparent: true,
-          opacity: 0.95,
+          opacity: 0.96,
           blending: THREE.AdditiveBlending,
           depthWrite: false,
           sizeAttenuation: true,
         })
       );
       group.add(points);
+      group.position.y = 2.35;
       group.userData.points = points;
       return group;
     }
 
-    const sunLight = new THREE.PointLight(0xff6b9d, 2.2, 40, 2);
-    sunLight.position.set(0, 2, 0);
-    scene.add(sunLight);
+    const sunLight = new THREE.PointLight(0xff6b9d, 2.4, 45, 2);
+    sunLight.position.set(0, 2.2, 0);
+    universe.add(sunLight);
     scene.add(new THREE.AmbientLight(0x332033, 0.55));
 
     let heartSun = makeHeartSun(false);
-    scene.add(heartSun);
+    universe.add(heartSun);
 
-    // —— Visible orbit rings (always spinning) ——
-    const ringGroup = new THREE.Group();
-    // slight tilt like a solar system disk
-    ringGroup.rotation.x = -0.55;
-    scene.add(ringGroup);
+    // Organic orbit shell (VT-style: radius + yOffset, not rigid rings)
+    const orbitGroup = new THREE.Group();
+    universe.add(orbitGroup);
 
-    const orbitRings = [];
-    ORBITS.forEach((radius, i) => {
-      const curve = new THREE.EllipseCurve(0, 0, radius, radius, 0, Math.PI * 2, false, 0);
-      const pts = curve.getPoints(128);
-      const geo = new THREE.BufferGeometry().setFromPoints(
-        pts.map((p) => new THREE.Vector3(p.x, 0, p.y))
-      );
-      const mat = new THREE.LineBasicMaterial({
-        color: new THREE.Color().setHSL(0.92, 0.7, 0.45 + i * 0.03),
-        transparent: true,
-        opacity: 0.35,
-        blending: THREE.AdditiveBlending,
-        depthWrite: false,
-      });
-      const ring = new THREE.LineLoop(geo, mat);
-      ringGroup.add(ring);
-      orbitRings.push(ring);
+    function makeHeartShape() {
+      const s = new THREE.Shape();
+      s.moveTo(0, -0.7);
+      s.bezierCurveTo(-0.9, -0.2, -0.9, 0.7, 0, 0.35);
+      s.bezierCurveTo(0.9, 0.7, 0.9, -0.2, 0, -0.7);
+      return s;
+    }
 
-      // soft glowing band under the line
-      const band = new THREE.Mesh(
-        new THREE.RingGeometry(radius - 0.06, radius + 0.06, 96),
-        new THREE.MeshBasicMaterial({
-          color: 0xff5a9a,
-          transparent: true,
-          opacity: 0.08,
-          side: THREE.DoubleSide,
-          blending: THREE.AdditiveBlending,
-          depthWrite: false,
-        })
-      );
-      band.rotation.x = -Math.PI / 2;
-      ringGroup.add(band);
+    const heartGeo = new THREE.ExtrudeGeometry(makeHeartShape(), {
+      depth: 0.15,
+      bevelEnabled: false,
+      curveSegments: 10,
     });
+    heartGeo.center();
+    heartGeo.rotateX(Math.PI);
+    heartGeo.scale(0.45, 0.45, 0.45);
 
-    // Tiny asteroids on rings for motion feel
-    const dust = [];
-    for (let i = 0; i < 180; i++) {
-      const radius = ORBITS[i % ORBITS.length] + (Math.random() - 0.5) * 0.35;
+    const orbitHearts = [];
+    for (let i = 0; i < 36; i++) {
       const mesh = new THREE.Mesh(
-        new THREE.SphereGeometry(0.04 + Math.random() * 0.05, 6, 6),
+        heartGeo,
         new THREE.MeshBasicMaterial({
-          color: 0xff8fb8,
+          color: new THREE.Color().setHSL(0.92 + Math.random() * 0.05, 0.85, 0.55),
           transparent: true,
-          opacity: 0.7,
-          blending: THREE.AdditiveBlending,
-          depthWrite: false,
+          opacity: 0.9,
         })
       );
       mesh.userData = {
-        radius,
+        radius: 4 + Math.random() * 11,
         angle: Math.random() * Math.PI * 2,
-        speed: 0.35 + Math.random() * 0.5,
+        yOffset: (Math.random() - 0.5) * 2.2,
+        speed: 0.35 + Math.random() * 0.45,
+        spin: (Math.random() - 0.5) * 1.2,
       };
-      ringGroup.add(mesh);
-      dust.push(mesh);
+      mesh.scale.setScalar(0.25 + Math.random() * 0.35);
+      orbitGroup.add(mesh);
+      orbitHearts.push(mesh);
     }
+
+    function makeTextTexture(text) {
+      const c = document.createElement("canvas");
+      c.width = 512;
+      c.height = 128;
+      const g = c.getContext("2d");
+      g.clearRect(0, 0, c.width, c.height);
+      g.font = "bold 48px Outfit, sans-serif";
+      g.textAlign = "center";
+      g.textBaseline = "middle";
+      g.shadowColor = "rgba(255, 80, 150, 0.95)";
+      g.shadowBlur = 16;
+      g.fillStyle = "#ffd6ea";
+      g.fillText(text, c.width / 2, c.height / 2);
+      const tex = new THREE.CanvasTexture(c);
+      tex.colorSpace = THREE.SRGBColorSpace;
+      return tex;
+    }
+
+    const wordSprites = [];
+    FLOAT_WORDS.forEach((word, index) => {
+      const sprite = new THREE.Sprite(
+        new THREE.SpriteMaterial({
+          map: makeTextTexture(word),
+          transparent: true,
+          depthWrite: false,
+          blending: THREE.AdditiveBlending,
+        })
+      );
+      sprite.userData = {
+        radius: 5.5 + (index % 4) * 2.2 + Math.random() * 1.5,
+        angle: (index / FLOAT_WORDS.length) * Math.PI * 2,
+        yOffset: (Math.random() - 0.5) * 1.8,
+        speed: 0.22 + Math.random() * 0.15,
+      };
+      sprite.scale.set(3.8, 0.95, 1);
+      orbitGroup.add(sprite);
+      wordSprites.push(sprite);
+    });
 
     // —— Icon planets ——
     function drawBadgeBase(g, size) {
@@ -609,36 +636,36 @@
     const iconMeshes = [];
     ICONS.forEach((icon, index) => {
       const tex = icon.kind === "hellokitty" ? makeHelloKittyTexture() : makeEmojiTexture(icon.emoji);
-      // Use a plane mesh so it sits on the orbit (not always camera-facing flat band)
-      const mat = new THREE.MeshBasicMaterial({
+      const mat = new THREE.SpriteMaterial({
         map: tex,
         transparent: true,
         depthWrite: false,
-        side: THREE.DoubleSide,
+        sizeAttenuation: true,
       });
-      const mesh = new THREE.Mesh(new THREE.CircleGeometry(0.85, 48), mat);
-      // billboard helper group
-      const pivot = new THREE.Object3D();
-      pivot.add(mesh);
-      mesh.position.y = 0.15;
-
-      const radius = ORBITS[index];
-      const angle = (index / ICONS.length) * Math.PI * 2;
-      pivot.userData = {
+      const sprite = new THREE.Sprite(mat);
+      const radius = 5.5 + index * 1.35 + Math.random() * 1.2;
+      const angle = (index / ICONS.length) * Math.PI * 2 + Math.random() * 0.4;
+      sprite.userData = {
         type: "icon",
         index,
         icon,
         radius,
         angle,
-        // Kepler-ish: outer planets slower
-        speed: 0.55 / Math.sqrt(radius),
+        yOffset: (Math.random() - 0.5) * 2.4,
+        speed: 0.38 + Math.random() * 0.22,
         opened: false,
-        mesh,
+        baseScale: 1.35,
       };
-      pivot.position.set(Math.cos(angle) * radius, 0, Math.sin(angle) * radius);
-      ringGroup.add(pivot);
-      iconMeshes.push(pivot);
+      sprite.scale.set(1.35, 1.35, 1);
+      orbitGroup.add(sprite);
+      iconMeshes.push(sprite);
     });
+
+    function placeOrbit(obj, d, t) {
+      obj.position.x = Math.cos(d.angle) * d.radius;
+      obj.position.z = Math.sin(d.angle) * d.radius;
+      obj.position.y = d.yOffset + Math.sin(t * 1.2 + d.angle) * 0.18;
+    }
 
     // —— Interaction ——
     const raycaster = new THREE.Raycaster();
@@ -654,21 +681,19 @@
 
     function pickIcon() {
       raycaster.setFromCamera(pointer, camera);
-      const targets = iconMeshes.map((p) => p.userData.mesh);
-      const hits = raycaster.intersectObjects(targets, false);
-      if (!hits.length) return null;
-      return hits[0].object.parent; // pivot
+      const hits = raycaster.intersectObjects(iconMeshes, false);
+      return hits.length ? hits[0].object : null;
     }
 
     function updateProgress() {
       progressEl.textContent = `${opened.size} / ${ICONS.length} opened`;
     }
 
-    function openIcon(pivot) {
-      const { index, icon } = pivot.userData;
+    function openIcon(sprite) {
+      const { index, icon } = sprite.userData;
       opened.add(index);
-      pivot.userData.opened = true;
-      pivot.userData.mesh.material.opacity = 0.55;
+      sprite.userData.opened = true;
+      sprite.material.opacity = 0.55;
       updateProgress();
       msgEmoji.textContent = icon.kind === "hellokitty" ? "🎀" : icon.emoji;
       msgTitle.textContent = icon.label;
@@ -722,7 +747,8 @@
     canvas.addEventListener("pointermove", (e) => {
       if (paused || finaleMode || pointerDown) return;
       setPointer(e);
-      canvas.style.cursor = pickIcon() ? "pointer" : "grab";
+      hovered = pickIcon();
+      canvas.style.cursor = hovered ? "pointer" : "grab";
     });
 
     msgClose.addEventListener("click", closeModal);
@@ -740,7 +766,7 @@
         }
       });
       heartSun = makeHeartSun(broken);
-      scene.add(heartSun);
+      universe.add(heartSun);
       bloom.strength = broken ? 0.45 : 0.95;
     }
 
@@ -770,37 +796,40 @@
       controls.update();
 
       if (!paused) {
-        // Particle heart-sun: gentle spin + pulse
-        if (heartSun) {
-          heartSun.rotation.y = t * 0.35;
-          const pulse = 1 + Math.sin(t * 1.8) * 0.035;
+        // 2D heart always faces the camera (not a 3D volume)
+        if (heartSun && heartSun.userData.billboard) {
+          heartSun.quaternion.copy(camera.quaternion);
+          const pulse = 1 + Math.sin(t * 1.8) * 0.04;
           heartSun.scale.setScalar(pulse);
           if (answer === "no") {
-            heartSun.rotation.z = Math.sin(t * 1.4) * 0.12;
+            heartSun.rotation.z = Math.sin(t * 1.4) * 0.08;
           }
         }
-        galaxy.rotation.y = t * 0.06;
+
+        galaxy.rotation.y = t * 0.055;
+        orbitGroup.rotation.y = t * 0.07;
         sunLight.intensity = 2 + Math.sin(t * 2) * 0.25;
 
-        // Orbit rings keep spinning as a system (slow)
-        ringGroup.rotation.y = t * 0.08;
-
-        // Planets (icons) travel along their rings
-        for (const pivot of iconMeshes) {
-          const d = pivot.userData;
-          d.angle += delta * d.speed;
-          pivot.position.x = Math.cos(d.angle) * d.radius;
-          pivot.position.z = Math.sin(d.angle) * d.radius;
-          pivot.position.y = Math.sin(t * 1.5 + d.angle) * 0.12;
-          // face camera slightly for readability
-          d.mesh.lookAt(camera.position);
+        for (const h of orbitHearts) {
+          const d = h.userData;
+          d.angle += delta * (d.speed / Math.sqrt(d.radius));
+          placeOrbit(h, d, t);
+          h.rotation.y += delta * d.spin;
         }
 
-        for (const d of dust) {
-          const u = d.userData;
-          u.angle += delta * (u.speed / Math.sqrt(u.radius));
-          d.position.x = Math.cos(u.angle) * u.radius;
-          d.position.z = Math.sin(u.angle) * u.radius;
+        for (const s of wordSprites) {
+          const d = s.userData;
+          d.angle += delta * d.speed;
+          placeOrbit(s, d, t);
+          s.material.opacity = 0.5 + Math.sin(t * 2 + d.angle) * 0.28;
+        }
+
+        for (const sprite of iconMeshes) {
+          const d = sprite.userData;
+          d.angle += delta * (d.speed / Math.sqrt(d.radius));
+          placeOrbit(sprite, d, t);
+          const pulse = hovered === sprite ? 1.15 : 1;
+          sprite.scale.setScalar(d.baseScale * pulse);
         }
       }
 
