@@ -291,9 +291,9 @@
     composer.addPass(new RenderPass(scene, camera));
     const bloom = new UnrealBloomPass(
       new THREE.Vector2(window.innerWidth, window.innerHeight),
-      0.7,
-      0.45,
-      0.2
+      0.95,
+      0.5,
+      0.14
     );
     composer.addPass(bloom);
 
@@ -321,123 +321,151 @@
       })));
     }
 
-    // Soft nebula glow behind sun
+    // Soft nebula glow under the heart-sun
     {
       const glow = new THREE.Mesh(
-        new THREE.SphereGeometry(3.2, 32, 32),
+        new THREE.SphereGeometry(2.8, 32, 32),
         new THREE.MeshBasicMaterial({
           color: 0xff4d8d,
           transparent: true,
-          opacity: 0.12,
+          opacity: 0.14,
           blending: THREE.AdditiveBlending,
           depthWrite: false,
         })
       );
+      glow.position.y = 1.2;
       scene.add(glow);
     }
 
-    // —— Heart-sun (clean mesh, NOT particle cloud) ——
-    function createHeartShape() {
-      const s = new THREE.Shape();
-      // Classic heart outline
-      s.moveTo(0, -0.85);
-      s.bezierCurveTo(-0.15, -0.55, -1.05, -0.35, -1.05, 0.25);
-      s.bezierCurveTo(-1.05, 0.75, -0.55, 1.05, 0, 0.65);
-      s.bezierCurveTo(0.55, 1.05, 1.05, 0.75, 1.05, 0.25);
-      s.bezierCurveTo(1.05, -0.35, 0.15, -0.55, 0, -0.85);
-      return s;
+    // —— Spiral galaxy disk under the heart (like the VT) ——
+    function makeGalaxyDisk() {
+      const count = 8000;
+      const pos = new Float32Array(count * 3);
+      const col = new Float32Array(count * 3);
+      const c1 = new THREE.Color("#ff4da6");
+      const c2 = new THREE.Color("#b44dff");
+      const c3 = new THREE.Color("#ff9ec8");
+      const tmp = new THREE.Color();
+
+      for (let i = 0; i < count; i++) {
+        const arm = i % 3;
+        const t = i / count;
+        const radius = Math.pow(t, 0.62) * 11;
+        const spin = radius * 0.55 + arm * ((Math.PI * 2) / 3);
+        const angle = spin + t * Math.PI * 4;
+        const spread = (Math.random() - 0.5) * (0.3 + radius * 0.07);
+        pos[i * 3] = Math.cos(angle) * radius + Math.cos(angle) * spread;
+        pos[i * 3 + 2] = Math.sin(angle) * radius + Math.sin(angle) * spread;
+        pos[i * 3 + 1] = (Math.random() - 0.5) * (0.25 + (1 - t) * 0.55);
+
+        if (t < 0.35) tmp.copy(c2).lerp(c1, t / 0.35);
+        else tmp.copy(c1).lerp(c3, (t - 0.35) / 0.65);
+        tmp.multiplyScalar(0.9 + Math.random() * 0.3);
+        col[i * 3] = tmp.r;
+        col[i * 3 + 1] = tmp.g;
+        col[i * 3 + 2] = tmp.b;
+      }
+
+      const geo = new THREE.BufferGeometry();
+      geo.setAttribute("position", new THREE.BufferAttribute(pos, 3));
+      geo.setAttribute("color", new THREE.BufferAttribute(col, 3));
+      const galaxy = new THREE.Points(
+        geo,
+        new THREE.PointsMaterial({
+          size: 0.11,
+          vertexColors: true,
+          transparent: true,
+          opacity: 0.9,
+          blending: THREE.AdditiveBlending,
+          depthWrite: false,
+          sizeAttenuation: true,
+        })
+      );
+      galaxy.rotation.x = -0.55;
+      return galaxy;
+    }
+    const galaxy = makeGalaxyDisk();
+    scene.add(galaxy);
+
+    // —— Heart-sun as glowing particle cloud (VT style) ——
+    function insideHeart(x, y, z) {
+      const a = x * x + 2.25 * y * y + z * z - 1;
+      return a * a * a - x * x * z * z * z - 0.1125 * y * y * z * z * z <= 0;
     }
 
     function makeHeartSun(broken = false) {
       const group = new THREE.Group();
+      const count = 9000;
+      const pos = new Float32Array(count * 3);
+      const col = new Float32Array(count * 3);
+      const cTip = new THREE.Color("#ff1a66");
+      const cMid = new THREE.Color("#ff4d9a");
+      const cTop = new THREE.Color("#ffb3d4");
+      const tmp = new THREE.Color();
 
-      if (!broken) {
-        const geo = new THREE.ExtrudeGeometry(createHeartShape(), {
-          depth: 0.55,
-          bevelEnabled: true,
-          bevelThickness: 0.12,
-          bevelSize: 0.1,
-          bevelSegments: 4,
-          curveSegments: 20,
-        });
-        geo.center();
-        // tip points up
-        geo.rotateZ(Math.PI);
+      let i = 0;
+      let guard = 0;
+      while (i < count && guard < count * 40) {
+        guard++;
+        let x = (Math.random() * 2 - 1) * 1.35;
+        let y = (Math.random() * 2 - 1) * 1.25;
+        let z = (Math.random() * 2 - 1) * 1.2;
+        if (!insideHeart(x, y, z)) continue;
 
-        const mat = new THREE.MeshStandardMaterial({
-          color: 0xff2f74,
-          emissive: 0xff4d8d,
-          emissiveIntensity: 1.35,
-          roughness: 0.35,
-          metalness: 0.15,
-        });
-        const mesh = new THREE.Mesh(geo, mat);
-        mesh.scale.setScalar(1.55);
-        group.add(mesh);
+        // Algebraic heart points along Z → map Z to up (Y)
+        let px = x * 2.35;
+        let py = z * 2.35 + 2.15;
+        let pz = y * 2.35;
 
-        // Inner bright core (sun feel)
-        const core = new THREE.Mesh(
-          new THREE.SphereGeometry(0.55, 24, 24),
-          new THREE.MeshBasicMaterial({
-            color: 0xffc0d8,
-            transparent: true,
-            opacity: 0.85,
-            blending: THREE.AdditiveBlending,
-            depthWrite: false,
-          })
-        );
-        group.add(core);
+        if (broken) {
+          const side = px >= 0 ? 1 : -1;
+          px += side * 1.25;
+          py -= 0.25;
+          if (Math.abs(x) < 0.2) {
+            px += side * 0.45;
+            py -= 0.55 + Math.random() * 0.5;
+          }
+        }
 
-        // Corona ring
-        const corona = new THREE.Mesh(
-          new THREE.RingGeometry(1.55, 2.15, 64),
-          new THREE.MeshBasicMaterial({
-            color: 0xff6b9d,
-            transparent: true,
-            opacity: 0.35,
-            side: THREE.DoubleSide,
-            blending: THREE.AdditiveBlending,
-            depthWrite: false,
-          })
-        );
-        corona.rotation.x = Math.PI / 2;
-        group.add(corona);
-        group.userData.corona = corona;
-        group.userData.core = core;
-        group.userData.mesh = mesh;
-      } else {
-        // Two broken halves
-        [-1, 1].forEach((side) => {
-          const geo = new THREE.ExtrudeGeometry(createHeartShape(), {
-            depth: 0.5,
-            bevelEnabled: true,
-            bevelThickness: 0.1,
-            bevelSize: 0.08,
-            bevelSegments: 3,
-            curveSegments: 16,
-          });
-          geo.center();
-          geo.rotateZ(Math.PI);
-          const mat = new THREE.MeshStandardMaterial({
-            color: 0x8a4a62,
-            emissive: 0x5a3048,
-            emissiveIntensity: 0.6,
-            roughness: 0.55,
-            metalness: 0.1,
-          });
-          const mesh = new THREE.Mesh(geo, mat);
-          mesh.scale.set(0.85, 1.4, 1.4);
-          mesh.position.x = side * 1.15;
-          mesh.position.y = side * 0.15;
-          mesh.rotation.z = side * 0.25;
-          group.add(mesh);
-        });
+        const i3 = i * 3;
+        pos[i3] = px;
+        pos[i3 + 1] = py;
+        pos[i3 + 2] = pz;
+
+        const h = THREE.MathUtils.clamp((py - 0.4) / 4.4, 0, 1);
+        if (h < 0.4) tmp.copy(cTip).lerp(cMid, h / 0.4);
+        else tmp.copy(cMid).lerp(cTop, (h - 0.4) / 0.6);
+        if (broken) tmp.lerp(new THREE.Color("#6a4455"), 0.4);
+        // brighter core particles
+        tmp.multiplyScalar(0.95 + Math.random() * 0.35);
+        col[i3] = tmp.r;
+        col[i3 + 1] = tmp.g;
+        col[i3 + 2] = tmp.b;
+        i++;
       }
 
+      const geo = new THREE.BufferGeometry();
+      geo.setAttribute("position", new THREE.BufferAttribute(pos, 3));
+      geo.setAttribute("color", new THREE.BufferAttribute(col, 3));
+      const points = new THREE.Points(
+        geo,
+        new THREE.PointsMaterial({
+          size: broken ? 0.085 : 0.1,
+          vertexColors: true,
+          transparent: true,
+          opacity: 0.95,
+          blending: THREE.AdditiveBlending,
+          depthWrite: false,
+          sizeAttenuation: true,
+        })
+      );
+      group.add(points);
+      group.userData.points = points;
       return group;
     }
 
     const sunLight = new THREE.PointLight(0xff6b9d, 2.2, 40, 2);
+    sunLight.position.set(0, 2, 0);
     scene.add(sunLight);
     scene.add(new THREE.AmbientLight(0x332033, 0.55));
 
@@ -713,7 +741,7 @@
       });
       heartSun = makeHeartSun(broken);
       scene.add(heartSun);
-      bloom.strength = broken ? 0.4 : 0.75;
+      bloom.strength = broken ? 0.45 : 0.95;
     }
 
     function choose(choice) {
@@ -742,19 +770,16 @@
       controls.update();
 
       if (!paused) {
-        // Heart-sun: gentle spin + pulse (like a living star)
+        // Particle heart-sun: gentle spin + pulse
         if (heartSun) {
-          heartSun.rotation.y = t * 0.45;
-          const pulse = 1 + Math.sin(t * 2.2) * 0.04;
-          if (heartSun.userData.mesh) heartSun.userData.mesh.scale.setScalar(1.55 * pulse);
-          if (heartSun.userData.corona) {
-            heartSun.userData.corona.rotation.z = t * 0.6;
-            heartSun.userData.corona.material.opacity = 0.28 + Math.sin(t * 2) * 0.08;
-          }
+          heartSun.rotation.y = t * 0.35;
+          const pulse = 1 + Math.sin(t * 1.8) * 0.035;
+          heartSun.scale.setScalar(pulse);
           if (answer === "no") {
             heartSun.rotation.z = Math.sin(t * 1.4) * 0.12;
           }
         }
+        galaxy.rotation.y = t * 0.06;
         sunLight.intensity = 2 + Math.sin(t * 2) * 0.25;
 
         // Orbit rings keep spinning as a system (slow)
