@@ -238,9 +238,9 @@
       return new THREE.Mesh(geo, petalMat(color));
     }
 
-    const bloom = new THREE.Group();
-    bloom.position.y = 2.05;
-    roseRoot.add(bloom);
+    const bloomGroup = new THREE.Group();
+    bloomGroup.position.y = 2.05;
+    roseRoot.add(bloomGroup);
 
     // Outer open petals (more realistic rose layering)
     const layers = [
@@ -265,7 +265,7 @@
         petal.lookAt(0, layer.y + 0.55, 0);
         petal.rotateX(layer.tilt);
         petal.rotateZ((Math.random() - 0.5) * 0.15);
-        bloom.add(petal);
+        bloomGroup.add(petal);
 
         if (li < 3 && i % 2 === 0) {
           addSparkle(petal, 0, sh * 0.35, 0.03, 0.09 + (2 - li) * 0.02);
@@ -280,8 +280,8 @@
     );
     bud.position.y = 0.48;
     bud.scale.set(1, 1.15, 1);
-    bloom.add(bud);
-    addSparkle(bloom, 0, 0.72, 0.12, 0.16);
+    bloomGroup.add(bud);
+    addSparkle(bloomGroup, 0, 0.72, 0.12, 0.16);
 
     // —— Green stem ——
     const stemMat = new THREE.MeshStandardMaterial({
@@ -376,11 +376,17 @@
       const group = new THREE.Group();
 
       const body = new THREE.Mesh(
-        new THREE.CapsuleGeometry(0.02, 0.14, 4, 8),
+        new THREE.CylinderGeometry(0.018, 0.018, 0.16, 8),
         new THREE.MeshStandardMaterial({ color: 0x2a1a22, roughness: 0.6 })
       );
       body.rotation.z = Math.PI / 2;
       group.add(body);
+      const head = new THREE.Mesh(
+        new THREE.SphereGeometry(0.025, 8, 8),
+        new THREE.MeshStandardMaterial({ color: 0x1a1018, roughness: 0.6 })
+      );
+      head.position.x = 0.09;
+      group.add(head);
 
       const wingShape = new THREE.Shape();
       wingShape.moveTo(0, 0);
@@ -478,8 +484,8 @@
       }
 
       // Soft bloom sway
-      bloom.rotation.y = Math.sin(t * 0.45) * 0.06;
-      bloom.scale.setScalar(1 + Math.sin(t * 1.4) * 0.015);
+      bloomGroup.rotation.y = Math.sin(t * 0.45) * 0.06;
+      bloomGroup.scale.setScalar(1 + Math.sin(t * 1.4) * 0.015);
 
       // Butterflies fly in lively orbits around the rose
       for (const b of butterflies) {
