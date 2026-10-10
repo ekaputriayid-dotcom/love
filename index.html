@@ -3,10 +3,10 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-  <title>Universe of Love</title>
+  <title>Crystal Rose</title>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600&display=swap" rel="stylesheet" />
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
     html, body {
@@ -14,7 +14,7 @@
       overflow: hidden;
       background: #000;
       font-family: "Outfit", sans-serif;
-      color: #fff;
+      color: #ffe4ef;
       touch-action: none;
     }
     #c {
@@ -23,191 +23,47 @@
       width: 100%;
       height: 100%;
       display: block;
+      cursor: grab;
     }
+    #c:active { cursor: grabbing; }
     .hud {
       position: fixed;
       top: 0; left: 0; right: 0;
       z-index: 5;
-      padding: 1rem 1rem 0;
+      padding: 1.15rem 1rem 0;
       text-align: center;
       pointer-events: none;
-      transition: opacity 0.6s ease;
     }
-    .hud.hidden { opacity: 0; }
     .hud h1 {
-      font-size: clamp(1.2rem, 4.5vw, 1.65rem);
-      font-weight: 700;
-      text-shadow: 0 0 20px rgba(255, 120, 180, 0.65);
+      font-size: clamp(1.15rem, 4.2vw, 1.55rem);
+      font-weight: 600;
+      letter-spacing: 0.04em;
+      text-shadow: 0 0 22px rgba(255, 140, 190, 0.55);
     }
     .hud p {
-      margin-top: 0.3rem;
-      font-size: 0.88rem;
-      color: rgba(255, 210, 230, 0.78);
+      margin-top: 0.35rem;
+      font-size: 0.86rem;
+      color: rgba(255, 200, 220, 0.55);
     }
-    .hud .progress {
-      margin-top: 0.4rem;
-      font-size: 0.78rem;
-      letter-spacing: 0.06em;
-      color: rgba(255, 160, 200, 0.9);
-    }
-    .hint-drag {
+    .hint {
       position: fixed;
-      bottom: 1.1rem;
+      bottom: 1.15rem;
       left: 0; right: 0;
       z-index: 5;
       text-align: center;
       font-size: 0.78rem;
-      color: rgba(255, 200, 220, 0.45);
+      color: rgba(255, 190, 215, 0.4);
       pointer-events: none;
-      transition: opacity 0.6s ease;
-    }
-    .hint-drag.hidden { opacity: 0; }
-    .modal {
-      position: fixed;
-      inset: 0;
-      z-index: 20;
-      display: grid;
-      place-items: center;
-      padding: 1.25rem;
-      background: rgba(0, 0, 0, 0.55);
-      backdrop-filter: blur(10px);
-      opacity: 0;
-      visibility: hidden;
-      transition: opacity 0.3s ease, visibility 0.3s ease;
-    }
-    .modal.open { opacity: 1; visibility: visible; }
-    .modal-card {
-      width: min(100%, 340px);
-      background: linear-gradient(165deg, #fff7fa, #ffe4ee);
-      color: #5c2a3d;
-      border-radius: 22px;
-      padding: 1.5rem 1.3rem 1.25rem;
-      text-align: center;
-      box-shadow: 0 24px 60px rgba(0, 0, 0, 0.45);
-      transform: translateY(12px) scale(0.96);
-      transition: transform 0.35s cubic-bezier(0.22, 1, 0.36, 1);
-    }
-    .modal.open .modal-card { transform: none; }
-    .modal-emoji {
-      font-size: 3rem;
-      margin-bottom: 0.65rem;
-    }
-    .modal-card h2 {
-      font-size: 0.78rem;
-      font-weight: 600;
-      letter-spacing: 0.14em;
-      text-transform: uppercase;
-      color: rgba(92, 42, 61, 0.5);
-      margin-bottom: 0.45rem;
-    }
-    .modal-card p {
-      font-size: clamp(1.15rem, 4.4vw, 1.4rem);
-      font-weight: 600;
-      line-height: 1.4;
-      margin-bottom: 1.2rem;
-    }
-    .modal-card button {
-      appearance: none;
-      border: none;
-      background: #e85a8c;
-      color: #fff;
-      font-family: inherit;
-      font-weight: 600;
-      font-size: 0.95rem;
-      padding: 0.78rem 1.5rem;
-      border-radius: 12px;
-      cursor: pointer;
-    }
-    .finale {
-      position: fixed;
-      inset: 0;
-      z-index: 15;
-      display: grid;
-      place-items: center;
-      padding: 1.5rem;
-      background: rgba(0, 0, 0, 0.42);
-      opacity: 0;
-      visibility: hidden;
-      transition: opacity 0.7s ease, visibility 0.7s ease;
-    }
-    .finale.show { opacity: 1; visibility: visible; }
-    .finale.gone { opacity: 0; visibility: hidden; pointer-events: none; }
-    .finale-inner { text-align: center; max-width: 400px; }
-    .finale .eyebrow {
-      font-size: 0.75rem;
-      letter-spacing: 0.22em;
-      text-transform: uppercase;
-      color: rgba(255, 200, 220, 0.65);
-      margin-bottom: 0.55rem;
-    }
-    .finale h1 {
-      font-size: clamp(1.9rem, 7vw, 2.55rem);
-      font-weight: 700;
-      margin-bottom: 0.45rem;
-      text-shadow: 0 0 28px rgba(255, 100, 160, 0.55);
-    }
-    .finale .sub {
-      color: rgba(255, 220, 230, 0.82);
-      margin-bottom: 1.7rem;
-      font-size: 1.08rem;
-    }
-    .choices {
-      display: flex;
-      gap: 0.85rem;
-      justify-content: center;
-      flex-wrap: wrap;
-    }
-    .btn {
-      appearance: none;
-      border: none;
-      background: #e85a8c;
-      color: #fff;
-      font-family: inherit;
-      font-weight: 600;
-      font-size: 1rem;
-      padding: 0.9rem 2rem;
-      min-width: 128px;
-      border-radius: 14px;
-      cursor: pointer;
-      box-shadow: 0 0 28px rgba(232, 90, 140, 0.45);
-    }
-    .btn.no {
-      background: rgba(255, 255, 255, 0.08);
-      border: 1.5px solid rgba(255, 220, 230, 0.35);
-      box-shadow: none;
     }
   </style>
 </head>
 <body>
   <canvas id="c"></canvas>
-
-  <div class="hud" id="hud">
-    <h1>Universe of Love</h1>
-    <p>Tap the icons orbiting the heart-sun</p>
-    <p class="progress" id="progress">0 / 6 opened</p>
+  <div class="hud">
+    <h1>Crystal Rose</h1>
+    <p>Drag to spin · Scroll / pinch to zoom</p>
   </div>
-  <p class="hint-drag" id="hintDrag">Drag anywhere to rotate · Pinch to zoom</p>
-
-  <div class="modal" id="modal">
-    <div class="modal-card">
-      <div class="modal-emoji" id="msgEmoji">🎀</div>
-      <h2 id="msgTitle">A little note</h2>
-      <p id="msgText"></p>
-      <button type="button" id="msgClose">Got it</button>
-    </div>
-  </div>
-
-  <section class="finale" id="finale">
-    <div class="finale-inner">
-      <p class="eyebrow">Hey…</p>
-      <h1>I like you.</h1>
-      <p class="sub">Will you be my boyfriend?</p>
-      <div class="choices">
-        <button class="btn" id="btnYes" type="button">Yes</button>
-        <button class="btn no" id="btnNo" type="button">No</button>
-      </div>
-    </div>
-  </section>
+  <p class="hint">Every corner shines for you</p>
 
   <script type="importmap">
   {
@@ -225,50 +81,13 @@
     import { RenderPass } from "three/addons/postprocessing/RenderPass.js";
     import { UnrealBloomPass } from "three/addons/postprocessing/UnrealBloomPass.js";
 
-    const ICONS = [
-      { kind: "hellokitty", label: "Hello Kitty", text: "You make my world feel soft and sweet." },
-      { kind: "emoji", emoji: "🕷️", label: "Hero", text: "I smile every time I think of you." },
-      { kind: "emoji", emoji: "🍓", label: "Strawberry", text: "You're my favorite kind of happiness." },
-      { kind: "emoji", emoji: "🌸", label: "Sakura", text: "My heart blooms whenever you're near." },
-      { kind: "emoji", emoji: "🧸", label: "Teddy", text: "I feel safe and warm with you." },
-      { kind: "emoji", emoji: "💘", label: "Cupid", text: "I like you more than words can say." },
-    ];
-
-    const FLOAT_WORDS = [
-      "I LIKE YOU",
-      "YOU'RE MAGIC",
-      "ALWAYS TOGETHER",
-      "MY HEART",
-      "FOREVER",
-      "BE MINE",
-    ];
-
     const canvas = document.getElementById("c");
-    const hud = document.getElementById("hud");
-    const hintDrag = document.getElementById("hintDrag");
-    const progressEl = document.getElementById("progress");
-    const modal = document.getElementById("modal");
-    const msgEmoji = document.getElementById("msgEmoji");
-    const msgTitle = document.getElementById("msgTitle");
-    const msgText = document.getElementById("msgText");
-    const msgClose = document.getElementById("msgClose");
-    const finale = document.getElementById("finale");
-    const btnYes = document.getElementById("btnYes");
-    const btnNo = document.getElementById("btnNo");
-
-    const opened = new Set();
-    let paused = false;
-    let finaleMode = false;
-    let answer = null;
-    let pointerDown = null;
-    let dragged = false;
-    let hovered = null;
 
     const scene = new THREE.Scene();
-    scene.fog = new THREE.FogExp2(0x030208, 0.012);
+    scene.fog = new THREE.FogExp2(0x000000, 0.02);
 
-    const camera = new THREE.PerspectiveCamera(50, window.innerWidth / window.innerHeight, 0.1, 200);
-    camera.position.set(14, 8, 18);
+    const camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, 100);
+    camera.position.set(0, 1.2, 7.5);
 
     const renderer = new THREE.WebGLRenderer({
       canvas,
@@ -279,41 +98,48 @@
     renderer.setSize(window.innerWidth, window.innerHeight);
     renderer.setClearColor(0x000000, 1);
     renderer.toneMapping = THREE.ACESFilmicToneMapping;
-    renderer.toneMappingExposure = 1.05;
+    renderer.toneMappingExposure = 1.15;
+    renderer.outputColorSpace = THREE.SRGBColorSpace;
 
     const controls = new OrbitControls(camera, canvas);
     controls.enableDamping = true;
-    controls.dampingFactor = 0.08;
+    controls.dampingFactor = 0.07;
     controls.enablePan = true;
-    controls.enableZoom = true;
-    controls.enableRotate = true;
-    controls.minDistance = 6;
-    controls.maxDistance = 48;
-    controls.target.set(0, 1.4, 0);
-    // Full 360° — not locked to top/bottom only
+    controls.minDistance = 3.5;
+    controls.maxDistance = 16;
+    controls.target.set(0, 0.35, 0);
     controls.minPolarAngle = 0;
     controls.maxPolarAngle = Math.PI;
-    controls.autoRotate = false;
-    controls.rotateSpeed = 0.85;
-    controls.zoomSpeed = 0.9;
-    controls.panSpeed = 0.65;
+    controls.rotateSpeed = 0.9;
 
     const composer = new EffectComposer(renderer);
     composer.addPass(new RenderPass(scene, camera));
     const bloom = new UnrealBloomPass(
       new THREE.Vector2(window.innerWidth, window.innerHeight),
-      0.95,
-      0.5,
-      0.14
+      1.05,
+      0.42,
+      0.18
     );
     composer.addPass(bloom);
 
-    // —— Stars ——
+    // Soft pink fill lights for crystal look
+    scene.add(new THREE.AmbientLight(0xffb0d0, 0.35));
+    const key = new THREE.PointLight(0xff6b9d, 2.4, 30);
+    key.position.set(3, 4, 4);
+    scene.add(key);
+    const rim = new THREE.PointLight(0xffd0ef, 1.6, 25);
+    rim.position.set(-3, 2, -2);
+    scene.add(rim);
+    const bottom = new THREE.PointLight(0xc44dff, 0.8, 20);
+    bottom.position.set(0, -2, 2);
+    scene.add(bottom);
+
+    // Distant sparkle stars
     {
-      const n = 2200;
+      const n = 900;
       const pos = new Float32Array(n * 3);
       for (let i = 0; i < n; i++) {
-        const r = 35 + Math.random() * 90;
+        const r = 12 + Math.random() * 40;
         const th = Math.random() * Math.PI * 2;
         const ph = Math.acos(2 * Math.random() - 1);
         pos[i * 3] = r * Math.sin(ph) * Math.cos(th);
@@ -324,514 +150,358 @@
       geo.setAttribute("position", new THREE.BufferAttribute(pos, 3));
       scene.add(new THREE.Points(geo, new THREE.PointsMaterial({
         color: 0xffd6ea,
-        size: 0.07,
+        size: 0.05,
         transparent: true,
-        opacity: 0.7,
+        opacity: 0.65,
         blending: THREE.AdditiveBlending,
         depthWrite: false,
       })));
     }
 
-    // Whole universe tilts like the VT (you can still rotate view anywhere)
-    const universe = new THREE.Group();
-    universe.rotation.x = -0.52;
-    scene.add(universe);
+    const roseRoot = new THREE.Group();
+    scene.add(roseRoot);
 
-    // —— Spiral galaxy disk (natural ring, not perfect circles) ——
-    function makeGalaxyDisk() {
-      const count = 9500;
-      const pos = new Float32Array(count * 3);
-      const col = new Float32Array(count * 3);
-      const c1 = new THREE.Color("#ff4da6");
-      const c2 = new THREE.Color("#b44dff");
-      const c3 = new THREE.Color("#ff9ec8");
-      const tmp = new THREE.Color();
+    // Glass / crystal material
+    function glassMat(color, opacity = 0.55) {
+      return new THREE.MeshPhysicalMaterial({
+        color,
+        metalness: 0.05,
+        roughness: 0.12,
+        transmission: 0.55,
+        thickness: 0.6,
+        transparent: true,
+        opacity,
+        ior: 1.45,
+        emissive: color,
+        emissiveIntensity: 0.22,
+        side: THREE.DoubleSide,
+        clearcoat: 1,
+        clearcoatRoughness: 0.08,
+      });
+    }
 
-      for (let i = 0; i < count; i++) {
-        const arm = i % 3;
-        const t = i / count;
-        const radius = Math.pow(t, 0.58) * 13;
-        const spin = radius * 0.52 + arm * ((Math.PI * 2) / 3);
-        const angle = spin + t * Math.PI * 4.2;
-        const spread = (Math.random() - 0.5) * (0.45 + radius * 0.09);
-        pos[i * 3] = Math.cos(angle) * radius + Math.cos(angle + 0.4) * spread;
-        pos[i * 3 + 2] = Math.sin(angle) * radius + Math.sin(angle + 0.4) * spread;
-        pos[i * 3 + 1] = (Math.random() - 0.5) * (0.18 + (1 - t) * 0.35);
-
-        if (t < 0.35) tmp.copy(c2).lerp(c1, t / 0.35);
-        else tmp.copy(c1).lerp(c3, (t - 0.35) / 0.65);
-        tmp.multiplyScalar(0.9 + Math.random() * 0.35);
-        col[i * 3] = tmp.r;
-        col[i * 3 + 1] = tmp.g;
-        col[i * 3 + 2] = tmp.b;
-      }
-
-      const geo = new THREE.BufferGeometry();
-      geo.setAttribute("position", new THREE.BufferAttribute(pos, 3));
-      geo.setAttribute("color", new THREE.BufferAttribute(col, 3));
-      return new THREE.Points(
-        geo,
-        new THREE.PointsMaterial({
-          size: 0.1,
-          vertexColors: true,
+    // —— Shiny sparkle at a world-ish local point ——
+    function makeSparkle(size = 0.12) {
+      const g = new THREE.Group();
+      const mat = new THREE.MeshBasicMaterial({
+        color: 0xffffff,
+        transparent: true,
+        opacity: 0.95,
+        blending: THREE.AdditiveBlending,
+        depthWrite: false,
+      });
+      const a = new THREE.Mesh(new THREE.PlaneGeometry(size * 0.18, size * 1.6), mat);
+      const b = new THREE.Mesh(new THREE.PlaneGeometry(size * 1.6, size * 0.18), mat.clone());
+      const core = new THREE.Mesh(
+        new THREE.SphereGeometry(size * 0.18, 8, 8),
+        new THREE.MeshBasicMaterial({
+          color: 0xffe0f0,
           transparent: true,
-          opacity: 0.92,
+          opacity: 1,
           blending: THREE.AdditiveBlending,
           depthWrite: false,
-          sizeAttenuation: true,
         })
       );
+      g.add(a, b, core);
+      g.userData.spin = 0.8 + Math.random() * 1.4;
+      g.userData.phase = Math.random() * Math.PI * 2;
+      return g;
     }
-    const galaxy = makeGalaxyDisk();
-    universe.add(galaxy);
 
-    // Soft glow at galaxy center
-    const coreGlow = new THREE.Mesh(
-      new THREE.SphereGeometry(1.6, 24, 24),
-      new THREE.MeshBasicMaterial({
-        color: 0xff4d8d,
+    const sparkles = [];
+
+    function addSparkle(parent, x, y, z, size) {
+      const s = makeSparkle(size);
+      s.position.set(x, y, z);
+      parent.add(s);
+      sparkles.push(s);
+      return s;
+    }
+
+    // —— Petal shape ——
+    function petalShape(w = 1, h = 1.4) {
+      const s = new THREE.Shape();
+      s.moveTo(0, 0);
+      s.bezierCurveTo(w * 0.7, h * 0.15, w * 0.85, h * 0.55, 0, h);
+      s.bezierCurveTo(-w * 0.85, h * 0.55, -w * 0.7, h * 0.15, 0, 0);
+      return s;
+    }
+
+    function makePetal(scale = 1, color = 0xff7aa8) {
+      const geo = new THREE.ExtrudeGeometry(petalShape(0.9 * scale, 1.35 * scale), {
+        depth: 0.06 * scale,
+        bevelEnabled: true,
+        bevelThickness: 0.04 * scale,
+        bevelSize: 0.03 * scale,
+        bevelSegments: 3,
+        curveSegments: 18,
+      });
+      geo.center();
+      const mesh = new THREE.Mesh(geo, glassMat(color, 0.62));
+      return mesh;
+    }
+
+    // Bloom layers of petals
+    const bloomGroup = new THREE.Group();
+    bloomGroup.position.y = 1.55;
+    roseRoot.add(bloomGroup);
+
+    const petalColors = [0xff8fb8, 0xff6b9d, 0xffa0c8, 0xff4d88, 0xffc0d8];
+
+    // Outer ring of petals
+    for (let i = 0; i < 8; i++) {
+      const petal = makePetal(1.05, petalColors[i % petalColors.length]);
+      const a = (i / 8) * Math.PI * 2;
+      petal.position.set(Math.cos(a) * 0.55, Math.sin(a * 2) * 0.08, Math.sin(a) * 0.55);
+      petal.lookAt(0, 0.4, 0);
+      petal.rotateX(-0.85);
+      bloomGroup.add(petal);
+      // shiny corners on petal tips
+      addSparkle(petal, 0, 0.55, 0.05, 0.14);
+      addSparkle(petal, 0.35, -0.1, 0.04, 0.08);
+      addSparkle(petal, -0.35, -0.1, 0.04, 0.08);
+    }
+
+    // Mid layer
+    for (let i = 0; i < 6; i++) {
+      const petal = makePetal(0.78, petalColors[(i + 2) % petalColors.length]);
+      const a = (i / 6) * Math.PI * 2 + 0.35;
+      petal.position.set(Math.cos(a) * 0.28, 0.12, Math.sin(a) * 0.28);
+      petal.lookAt(0, 0.5, 0);
+      petal.rotateX(-1.05);
+      bloomGroup.add(petal);
+      addSparkle(petal, 0, 0.42, 0.04, 0.11);
+    }
+
+    // Inner bud
+    for (let i = 0; i < 5; i++) {
+      const petal = makePetal(0.48, 0xffd0e4);
+      const a = (i / 5) * Math.PI * 2 + 0.2;
+      petal.position.set(Math.cos(a) * 0.1, 0.28, Math.sin(a) * 0.1);
+      petal.lookAt(0, 0.7, 0);
+      petal.rotateX(-1.25);
+      bloomGroup.add(petal);
+    }
+
+    // Crystal core
+    const core = new THREE.Mesh(
+      new THREE.IcosahedronGeometry(0.28, 1),
+      new THREE.MeshPhysicalMaterial({
+        color: 0xffe8f2,
+        metalness: 0.2,
+        roughness: 0.05,
+        transmission: 0.7,
         transparent: true,
-        opacity: 0.18,
+        opacity: 0.85,
+        emissive: 0xff9ec0,
+        emissiveIntensity: 0.55,
+        clearcoat: 1,
+      })
+    );
+    core.position.y = 0.35;
+    bloomGroup.add(core);
+    addSparkle(bloomGroup, 0, 0.75, 0.2, 0.2);
+    addSparkle(bloomGroup, 0.45, 0.4, 0.35, 0.12);
+    addSparkle(bloomGroup, -0.4, 0.5, 0.3, 0.12);
+
+    // Stem
+    const stem = new THREE.Mesh(
+      new THREE.CylinderGeometry(0.05, 0.07, 2.6, 16),
+      glassMat(0xff6b9d, 0.7)
+    );
+    stem.position.y = 0.05;
+    roseRoot.add(stem);
+    addSparkle(stem, 0.04, 0.9, 0.04, 0.09);
+    addSparkle(stem, -0.04, 0.2, 0.04, 0.08);
+    addSparkle(stem, 0.03, -0.7, 0.03, 0.08);
+
+    // —— Orbiting crystal ring (thorn / light ring) ——
+    const ringPivot = new THREE.Group();
+    ringPivot.position.y = 0.15;
+    ringPivot.rotation.x = 0.55;
+    ringPivot.rotation.z = 0.25;
+    roseRoot.add(ringPivot);
+
+    const ringRadius = 1.55;
+    const ringTube = new THREE.Mesh(
+      new THREE.TorusGeometry(ringRadius, 0.028, 12, 96),
+      new THREE.MeshPhysicalMaterial({
+        color: 0xff8fb8,
+        metalness: 0.35,
+        roughness: 0.15,
+        emissive: 0xff4d88,
+        emissiveIntensity: 0.65,
+        transparent: true,
+        opacity: 0.9,
+        clearcoat: 1,
+      })
+    );
+    ringPivot.add(ringTube);
+
+    // Spiky thorn accents along the ring
+    for (let i = 0; i < 18; i++) {
+      const a = (i / 18) * Math.PI * 2;
+      const spike = new THREE.Mesh(
+        new THREE.ConeGeometry(0.045, 0.22, 5),
+        glassMat(0xffa0c8, 0.85)
+      );
+      spike.position.set(Math.cos(a) * ringRadius, Math.sin(a) * ringRadius, 0);
+      spike.lookAt(0, 0, 0);
+      spike.rotateX(Math.PI / 2);
+      ringTube.add(spike);
+      if (i % 2 === 0) {
+        addSparkle(spike, 0, 0.12, 0, 0.1);
+      }
+    }
+
+    // Floating butterflies & stars on the ring
+    function makeButterflyTexture() {
+      const c = document.createElement("canvas");
+      c.width = 128; c.height = 128;
+      const g = c.getContext("2d");
+      g.clearRect(0, 0, 128, 128);
+      g.fillStyle = "#ffb0d0";
+      g.beginPath();
+      g.ellipse(40, 64, 28, 36, -0.4, 0, Math.PI * 2);
+      g.ellipse(88, 64, 28, 36, 0.4, 0, Math.PI * 2);
+      g.fill();
+      g.fillStyle = "#ffe0ef";
+      g.fillRect(60, 40, 8, 48);
+      const tex = new THREE.CanvasTexture(c);
+      tex.colorSpace = THREE.SRGBColorSpace;
+      return tex;
+    }
+
+    function makeStarTexture() {
+      const c = document.createElement("canvas");
+      c.width = 128; c.height = 128;
+      const g = c.getContext("2d");
+      g.clearRect(0, 0, 128, 128);
+      g.translate(64, 64);
+      g.fillStyle = "#fff";
+      g.shadowColor = "#ff8fb8";
+      g.shadowBlur = 16;
+      for (let i = 0; i < 4; i++) {
+        g.rotate(Math.PI / 2);
+        g.beginPath();
+        g.moveTo(0, 0);
+        g.lineTo(6, -50);
+        g.lineTo(-6, -50);
+        g.closePath();
+        g.fill();
+      }
+      g.beginPath();
+      g.arc(0, 0, 8, 0, Math.PI * 2);
+      g.fill();
+      const tex = new THREE.CanvasTexture(c);
+      tex.colorSpace = THREE.SRGBColorSpace;
+      return tex;
+    }
+
+    const floaters = [];
+    const butterflyTex = makeButterflyTexture();
+    const starTex = makeStarTexture();
+
+    [
+      { tex: butterflyTex, angle: 0.4, scale: 0.55 },
+      { tex: butterflyTex, angle: 2.6, scale: 0.45 },
+      { tex: starTex, angle: 1.3, scale: 0.4 },
+      { tex: starTex, angle: 4.0, scale: 0.35 },
+      { tex: starTex, angle: 5.2, scale: 0.3 },
+    ].forEach((f) => {
+      const spr = new THREE.Sprite(
+        new THREE.SpriteMaterial({
+          map: f.tex,
+          transparent: true,
+          depthWrite: false,
+          blending: THREE.AdditiveBlending,
+        })
+      );
+      spr.userData.angle = f.angle;
+      spr.userData.radius = ringRadius;
+      spr.userData.bob = Math.random() * Math.PI * 2;
+      spr.scale.set(f.scale, f.scale, 1);
+      ringPivot.add(spr);
+      floaters.push(spr);
+      addSparkle(spr, 0, 0, 0, 0.08);
+    });
+
+    // Soft aura behind rose
+    const aura = new THREE.Mesh(
+      new THREE.SphereGeometry(2.2, 32, 32),
+      new THREE.MeshBasicMaterial({
+        color: 0xff4d88,
+        transparent: true,
+        opacity: 0.08,
         blending: THREE.AdditiveBlending,
         depthWrite: false,
       })
     );
-    coreGlow.position.y = 0.15;
-    universe.add(coreGlow);
+    aura.position.y = 1.2;
+    roseRoot.add(aura);
 
-    // —— Flat 2D particle heart (VT style, always faces camera) ——
-    function sampleFlatHeart() {
-      const t = Math.random() * Math.PI * 2;
-      const hx = 16 * Math.pow(Math.sin(t), 3);
-      const hy =
-        13 * Math.cos(t) -
-        5 * Math.cos(2 * t) -
-        2 * Math.cos(3 * t) -
-        Math.cos(4 * t);
-      const fill = 0.25 + Math.random() * 0.75;
-      const s = 0.105 * Math.sqrt(fill);
-      return { x: hx * s, y: hy * s };
-    }
+    // Auto-spin + user can override with drag
+    let autoSpin = true;
+    let userInteracting = false;
 
-    function makeHeartSun(broken = false) {
-      const group = new THREE.Group();
-      group.userData.billboard = true;
-      const count = 7500;
-      const pos = new Float32Array(count * 3);
-      const col = new Float32Array(count * 3);
-      const cTip = new THREE.Color("#ff1a66");
-      const cMid = new THREE.Color("#ff4d9a");
-      const cTop = new THREE.Color("#ffc0d8");
-      const tmp = new THREE.Color();
-
-      for (let i = 0; i < count; i++) {
-        let { x, y } = sampleFlatHeart();
-        if (broken) {
-          const side = x >= 0 ? 1 : -1;
-          x += side * 0.55;
-          y -= 0.35;
-          if (Math.abs(x) < 0.35) {
-            x += side * 0.35;
-            y -= 0.45 + Math.random() * 0.35;
-          }
-        }
-
-        const i3 = i * 3;
-        pos[i3] = x;
-        pos[i3 + 1] = y + 0.15;
-        pos[i3 + 2] = (Math.random() - 0.5) * 0.06;
-
-        const h = THREE.MathUtils.clamp((y + 1.2) / 3.2, 0, 1);
-        if (h < 0.45) tmp.copy(cTip).lerp(cMid, h / 0.45);
-        else tmp.copy(cMid).lerp(cTop, (h - 0.45) / 0.55);
-        if (broken) tmp.lerp(new THREE.Color("#6a4455"), 0.45);
-        tmp.multiplyScalar(0.92 + Math.random() * 0.35);
-        col[i3] = tmp.r;
-        col[i3 + 1] = tmp.g;
-        col[i3 + 2] = tmp.b;
-      }
-
-      const geo = new THREE.BufferGeometry();
-      geo.setAttribute("position", new THREE.BufferAttribute(pos, 3));
-      geo.setAttribute("color", new THREE.BufferAttribute(col, 3));
-      const points = new THREE.Points(
-        geo,
-        new THREE.PointsMaterial({
-          size: broken ? 0.11 : 0.13,
-          vertexColors: true,
-          transparent: true,
-          opacity: 0.96,
-          blending: THREE.AdditiveBlending,
-          depthWrite: false,
-          sizeAttenuation: true,
-        })
-      );
-      group.add(points);
-      group.position.y = 2.35;
-      group.userData.points = points;
-      return group;
-    }
-
-    const sunLight = new THREE.PointLight(0xff6b9d, 2.4, 45, 2);
-    sunLight.position.set(0, 2.2, 0);
-    universe.add(sunLight);
-    scene.add(new THREE.AmbientLight(0x332033, 0.55));
-
-    let heartSun = makeHeartSun(false);
-    universe.add(heartSun);
-
-    // Organic orbit shell (VT-style: radius + yOffset, not rigid rings)
-    const orbitGroup = new THREE.Group();
-    universe.add(orbitGroup);
-
-    function makeHeartShape() {
-      const s = new THREE.Shape();
-      s.moveTo(0, -0.7);
-      s.bezierCurveTo(-0.9, -0.2, -0.9, 0.7, 0, 0.35);
-      s.bezierCurveTo(0.9, 0.7, 0.9, -0.2, 0, -0.7);
-      return s;
-    }
-
-    const heartGeo = new THREE.ExtrudeGeometry(makeHeartShape(), {
-      depth: 0.15,
-      bevelEnabled: false,
-      curveSegments: 10,
+    controls.addEventListener("start", () => {
+      userInteracting = true;
+      autoSpin = false;
     });
-    heartGeo.center();
-    heartGeo.rotateX(Math.PI);
-    heartGeo.scale(0.45, 0.45, 0.45);
-
-    const orbitHearts = [];
-    for (let i = 0; i < 36; i++) {
-      const mesh = new THREE.Mesh(
-        heartGeo,
-        new THREE.MeshBasicMaterial({
-          color: new THREE.Color().setHSL(0.92 + Math.random() * 0.05, 0.85, 0.55),
-          transparent: true,
-          opacity: 0.9,
-        })
-      );
-      mesh.userData = {
-        radius: 4 + Math.random() * 11,
-        angle: Math.random() * Math.PI * 2,
-        yOffset: (Math.random() - 0.5) * 2.2,
-        speed: 0.35 + Math.random() * 0.45,
-        spin: (Math.random() - 0.5) * 1.2,
-      };
-      mesh.scale.setScalar(0.25 + Math.random() * 0.35);
-      orbitGroup.add(mesh);
-      orbitHearts.push(mesh);
-    }
-
-    function makeTextTexture(text) {
-      const c = document.createElement("canvas");
-      c.width = 512;
-      c.height = 128;
-      const g = c.getContext("2d");
-      g.clearRect(0, 0, c.width, c.height);
-      g.font = "bold 48px Outfit, sans-serif";
-      g.textAlign = "center";
-      g.textBaseline = "middle";
-      g.shadowColor = "rgba(255, 80, 150, 0.95)";
-      g.shadowBlur = 16;
-      g.fillStyle = "#ffd6ea";
-      g.fillText(text, c.width / 2, c.height / 2);
-      const tex = new THREE.CanvasTexture(c);
-      tex.colorSpace = THREE.SRGBColorSpace;
-      return tex;
-    }
-
-    const wordSprites = [];
-    FLOAT_WORDS.forEach((word, index) => {
-      const sprite = new THREE.Sprite(
-        new THREE.SpriteMaterial({
-          map: makeTextTexture(word),
-          transparent: true,
-          depthWrite: false,
-          blending: THREE.AdditiveBlending,
-        })
-      );
-      sprite.userData = {
-        radius: 5.5 + (index % 4) * 2.2 + Math.random() * 1.5,
-        angle: (index / FLOAT_WORDS.length) * Math.PI * 2,
-        yOffset: (Math.random() - 0.5) * 1.8,
-        speed: 0.22 + Math.random() * 0.15,
-      };
-      sprite.scale.set(3.8, 0.95, 1);
-      orbitGroup.add(sprite);
-      wordSprites.push(sprite);
+    controls.addEventListener("end", () => {
+      userInteracting = false;
+      // resume gentle spin after a pause
+      setTimeout(() => {
+        if (!userInteracting) autoSpin = true;
+      }, 1800);
     });
 
-    // —— Icon planets ——
-    function drawBadgeBase(g, size) {
-      const grd = g.createRadialGradient(size * 0.35, size * 0.3, 10, size * 0.5, size * 0.5, size * 0.48);
-      grd.addColorStop(0, "#ffffff");
-      grd.addColorStop(0.55, "#ffe4f0");
-      grd.addColorStop(1, "#ff8fbc");
-      g.fillStyle = grd;
-      g.beginPath();
-      g.arc(size / 2, size / 2, size * 0.46, 0, Math.PI * 2);
-      g.fill();
-      g.strokeStyle = "rgba(255,255,255,0.95)";
-      g.lineWidth = 10;
-      g.stroke();
-    }
-
-    function makeHelloKittyTexture() {
-      const size = 256;
-      const c = document.createElement("canvas");
-      c.width = size; c.height = size;
-      const g = c.getContext("2d");
-      drawBadgeBase(g, size);
-      const cx = size / 2, cy = size / 2 + 10;
-      g.fillStyle = "#fff";
-      g.beginPath();
-      g.ellipse(cx - 48, cy - 52, 28, 36, -0.25, 0, Math.PI * 2);
-      g.ellipse(cx + 48, cy - 52, 28, 36, 0.25, 0, Math.PI * 2);
-      g.fill();
-      g.strokeStyle = "#222"; g.lineWidth = 5; g.stroke();
-      g.beginPath();
-      g.ellipse(cx, cy, 70, 62, 0, 0, Math.PI * 2);
-      g.fillStyle = "#fff"; g.fill(); g.stroke();
-      g.fillStyle = "#ff3b6e";
-      g.beginPath();
-      g.ellipse(cx + 42, cy - 48, 22, 16, 0.4, 0, Math.PI * 2);
-      g.ellipse(cx + 68, cy - 40, 22, 16, -0.2, 0, Math.PI * 2);
-      g.fill();
-      g.beginPath(); g.arc(cx + 55, cy - 44, 8, 0, Math.PI * 2); g.fill();
-      g.fillStyle = "#222";
-      g.beginPath();
-      g.ellipse(cx - 24, cy + 4, 7, 10, 0, 0, Math.PI * 2);
-      g.ellipse(cx + 24, cy + 4, 7, 10, 0, 0, Math.PI * 2);
-      g.fill();
-      g.fillStyle = "#ffb4c8";
-      g.beginPath(); g.ellipse(cx, cy + 18, 7, 5, 0, 0, Math.PI * 2); g.fill();
-      g.strokeStyle = "#222"; g.lineWidth = 3;
-      [[-55, 8], [-55, 20], [-55, 32], [55, 8], [55, 20], [55, 32]].forEach(([x, y], i) => {
-        g.beginPath();
-        g.moveTo(cx + (i < 3 ? -18 : 18), cy + 12);
-        g.lineTo(cx + x * 0.7, cy + y - 4);
-        g.stroke();
-      });
-      const tex = new THREE.CanvasTexture(c);
-      tex.colorSpace = THREE.SRGBColorSpace;
-      return tex;
-    }
-
-    function makeEmojiTexture(emoji) {
-      const size = 256;
-      const c = document.createElement("canvas");
-      c.width = size; c.height = size;
-      const g = c.getContext("2d");
-      drawBadgeBase(g, size);
-      g.font = "140px serif";
-      g.textAlign = "center";
-      g.textBaseline = "middle";
-      g.fillText(emoji, size / 2, size / 2 + 8);
-      const tex = new THREE.CanvasTexture(c);
-      tex.colorSpace = THREE.SRGBColorSpace;
-      return tex;
-    }
-
-    const iconMeshes = [];
-    ICONS.forEach((icon, index) => {
-      const tex = icon.kind === "hellokitty" ? makeHelloKittyTexture() : makeEmojiTexture(icon.emoji);
-      const mat = new THREE.SpriteMaterial({
-        map: tex,
-        transparent: true,
-        depthWrite: false,
-        sizeAttenuation: true,
-      });
-      const sprite = new THREE.Sprite(mat);
-      const radius = 5.5 + index * 1.35 + Math.random() * 1.2;
-      const angle = (index / ICONS.length) * Math.PI * 2 + Math.random() * 0.4;
-      sprite.userData = {
-        type: "icon",
-        index,
-        icon,
-        radius,
-        angle,
-        yOffset: (Math.random() - 0.5) * 2.4,
-        speed: 0.38 + Math.random() * 0.22,
-        opened: false,
-        baseScale: 1.35,
-      };
-      sprite.scale.set(1.35, 1.35, 1);
-      orbitGroup.add(sprite);
-      iconMeshes.push(sprite);
-    });
-
-    function placeOrbit(obj, d, t) {
-      obj.position.x = Math.cos(d.angle) * d.radius;
-      obj.position.z = Math.sin(d.angle) * d.radius;
-      obj.position.y = d.yOffset + Math.sin(t * 1.2 + d.angle) * 0.18;
-    }
-
-    // —— Interaction ——
-    const raycaster = new THREE.Raycaster();
-    const pointer = new THREE.Vector2();
-
-    function setPointer(e) {
-      const x = e.changedTouches ? e.changedTouches[0].clientX : e.clientX;
-      const y = e.changedTouches ? e.changedTouches[0].clientY : e.clientY;
-      pointer.x = (x / window.innerWidth) * 2 - 1;
-      pointer.y = -(y / window.innerHeight) * 2 + 1;
-      return { x, y };
-    }
-
-    function pickIcon() {
-      raycaster.setFromCamera(pointer, camera);
-      const hits = raycaster.intersectObjects(iconMeshes, false);
-      return hits.length ? hits[0].object : null;
-    }
-
-    function updateProgress() {
-      progressEl.textContent = `${opened.size} / ${ICONS.length} opened`;
-    }
-
-    function openIcon(sprite) {
-      const { index, icon } = sprite.userData;
-      opened.add(index);
-      sprite.userData.opened = true;
-      sprite.material.opacity = 0.55;
-      updateProgress();
-      msgEmoji.textContent = icon.kind === "hellokitty" ? "🎀" : icon.emoji;
-      msgTitle.textContent = icon.label;
-      msgText.textContent = icon.text;
-      modal.classList.add("open");
-      paused = true;
-      controls.enabled = false;
-    }
-
-    function closeModal() {
-      modal.classList.remove("open");
-      paused = false;
-      controls.enabled = true;
-      if (opened.size >= ICONS.length && !finaleMode && answer === null) {
-        setTimeout(() => {
-          hud.classList.add("hidden");
-          hintDrag.classList.add("hidden");
-          finale.classList.add("show");
-          controls.enabled = false;
-        }, 280);
-      }
-    }
-
-    canvas.addEventListener("pointerdown", (e) => {
-      const p = setPointer(e);
-      pointerDown = p;
-      dragged = false;
-    });
-
-    canvas.addEventListener("pointermove", (e) => {
-      if (!pointerDown) return;
-      const p = setPointer(e);
-      if (Math.hypot(p.x - pointerDown.x, p.y - pointerDown.y) > 8) dragged = true;
-    });
-
-    canvas.addEventListener("pointerup", (e) => {
-      if (paused || finale.classList.contains("show") || finaleMode) {
-        pointerDown = null;
-        return;
-      }
-      setPointer(e);
-      if (!dragged) {
-        const hit = pickIcon();
-        if (hit) openIcon(hit);
-      }
-      pointerDown = null;
-      dragged = false;
-    });
-
-    // Hover cursor
-    canvas.addEventListener("pointermove", (e) => {
-      if (paused || finaleMode || pointerDown) return;
-      setPointer(e);
-      hovered = pickIcon();
-      canvas.style.cursor = hovered ? "pointer" : "grab";
-    });
-
-    msgClose.addEventListener("click", closeModal);
-    modal.addEventListener("click", (e) => {
-      if (e.target === modal) closeModal();
-    });
-
-    function replaceSun(broken) {
-      scene.remove(heartSun);
-      heartSun.traverse((o) => {
-        if (o.geometry) o.geometry.dispose();
-        if (o.material) {
-          if (Array.isArray(o.material)) o.material.forEach((m) => m.dispose());
-          else o.material.dispose();
-        }
-      });
-      heartSun = makeHeartSun(broken);
-      universe.add(heartSun);
-      bloom.strength = broken ? 0.45 : 0.95;
-    }
-
-    function choose(choice) {
-      answer = choice;
-      finaleMode = true;
-      finale.classList.add("gone");
-      hud.classList.add("hidden");
-      hintDrag.classList.add("hidden");
-      controls.enabled = true;
-      replaceSun(choice === "no");
-    }
-
-    btnYes.addEventListener("click", () => choose("yes"));
-    btnNo.addEventListener("click", () => choose("no"));
-
-    // —— Animate ——
     const clock = new THREE.Clock();
-    let lastT = 0;
 
     function animate() {
       requestAnimationFrame(animate);
       const t = clock.getElapsedTime();
-      const delta = Math.min(0.05, t - lastT);
-      lastT = t;
+      const delta = clock.getDelta();
 
       controls.update();
 
-      if (!paused) {
-        // 2D heart always faces the camera (not a 3D volume)
-        if (heartSun && heartSun.userData.billboard) {
-          heartSun.quaternion.copy(camera.quaternion);
-          const pulse = 1 + Math.sin(t * 1.8) * 0.04;
-          heartSun.scale.setScalar(pulse);
-          if (answer === "no") {
-            heartSun.rotation.z = Math.sin(t * 1.4) * 0.08;
-          }
-        }
-
-        galaxy.rotation.y = t * 0.055;
-        orbitGroup.rotation.y = t * 0.07;
-        sunLight.intensity = 2 + Math.sin(t * 2) * 0.25;
-
-        for (const h of orbitHearts) {
-          const d = h.userData;
-          d.angle += delta * (d.speed / Math.sqrt(d.radius));
-          placeOrbit(h, d, t);
-          h.rotation.y += delta * d.spin;
-        }
-
-        for (const s of wordSprites) {
-          const d = s.userData;
-          d.angle += delta * d.speed;
-          placeOrbit(s, d, t);
-          s.material.opacity = 0.5 + Math.sin(t * 2 + d.angle) * 0.28;
-        }
-
-        for (const sprite of iconMeshes) {
-          const d = sprite.userData;
-          d.angle += delta * (d.speed / Math.sqrt(d.radius));
-          placeOrbit(sprite, d, t);
-          const pulse = hovered === sprite ? 1.15 : 1;
-          sprite.scale.setScalar(d.baseScale * pulse);
-        }
+      if (autoSpin) {
+        roseRoot.rotation.y += delta * 0.35;
       }
+
+      // Ring keeps orbiting
+      ringPivot.rotation.z = 0.25 + Math.sin(t * 0.4) * 0.08;
+      ringTube.rotation.z = t * 0.55;
+
+      // Petals breathe slightly
+      bloomGroup.rotation.y = Math.sin(t * 0.5) * 0.08;
+      bloomGroup.scale.setScalar(1 + Math.sin(t * 1.6) * 0.02);
+      core.rotation.y = t * 0.8;
+      core.rotation.x = t * 0.35;
+
+      // Floaters on ring
+      for (const f of floaters) {
+        const a = f.userData.angle + t * 0.55;
+        f.position.set(
+          Math.cos(a) * f.userData.radius,
+          Math.sin(a) * f.userData.radius,
+          Math.sin(t * 2 + f.userData.bob) * 0.15
+        );
+      }
+
+      // Sparkles twinkle + face camera
+      for (const s of sparkles) {
+        s.quaternion.copy(camera.quaternion);
+        const tw = 0.55 + 0.45 * Math.sin(t * s.userData.spin * 3 + s.userData.phase);
+        s.scale.setScalar(tw);
+      }
+
+      // Moving light for glossy highlight sweep
+      key.position.x = Math.cos(t * 0.7) * 3.5;
+      key.position.z = Math.sin(t * 0.7) * 3.5;
+      rim.intensity = 1.3 + Math.sin(t * 2) * 0.35;
+
+      aura.material.opacity = 0.06 + Math.sin(t * 1.5) * 0.025;
 
       composer.render();
     }
