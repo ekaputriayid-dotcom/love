@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-  <title>Crystal Rose</title>
+  <title>Rose & Butterflies</title>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600&display=swap" rel="stylesheet" />
@@ -60,10 +60,10 @@
 <body>
   <canvas id="c"></canvas>
   <div class="hud">
-    <h1>Crystal Rose</h1>
+    <h1>A Rose for You</h1>
     <p>Drag to spin · Scroll / pinch to zoom</p>
   </div>
-  <p class="hint">Every corner shines for you</p>
+  <p class="hint">Watch the butterflies dance around the bloom</p>
 
   <script type="importmap">
   {
@@ -84,10 +84,10 @@
     const canvas = document.getElementById("c");
 
     const scene = new THREE.Scene();
-    scene.fog = new THREE.FogExp2(0x000000, 0.02);
+    scene.fog = new THREE.FogExp2(0x050308, 0.025);
 
-    const camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, 100);
-    camera.position.set(0, 1.2, 7.5);
+    const camera = new THREE.PerspectiveCamera(42, window.innerWidth / window.innerHeight, 0.1, 100);
+    camera.position.set(2.2, 2.4, 7.2);
 
     const renderer = new THREE.WebGLRenderer({
       canvas,
@@ -96,50 +96,50 @@
     });
     renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
     renderer.setSize(window.innerWidth, window.innerHeight);
-    renderer.setClearColor(0x000000, 1);
+    renderer.setClearColor(0x050308, 1);
     renderer.toneMapping = THREE.ACESFilmicToneMapping;
-    renderer.toneMappingExposure = 1.15;
+    renderer.toneMappingExposure = 1.05;
     renderer.outputColorSpace = THREE.SRGBColorSpace;
 
     const controls = new OrbitControls(camera, canvas);
     controls.enableDamping = true;
     controls.dampingFactor = 0.07;
     controls.enablePan = true;
-    controls.minDistance = 3.5;
-    controls.maxDistance = 16;
-    controls.target.set(0, 0.35, 0);
-    controls.minPolarAngle = 0;
-    controls.maxPolarAngle = Math.PI;
-    controls.rotateSpeed = 0.9;
+    controls.minDistance = 3.2;
+    controls.maxDistance = 14;
+    controls.target.set(0, 1.1, 0);
+    controls.minPolarAngle = 0.15;
+    controls.maxPolarAngle = Math.PI - 0.15;
+    controls.rotateSpeed = 0.85;
 
     const composer = new EffectComposer(renderer);
     composer.addPass(new RenderPass(scene, camera));
     const bloom = new UnrealBloomPass(
       new THREE.Vector2(window.innerWidth, window.innerHeight),
-      1.05,
-      0.42,
-      0.18
+      0.55,
+      0.4,
+      0.35
     );
     composer.addPass(bloom);
 
-    // Soft pink fill lights for crystal look
-    scene.add(new THREE.AmbientLight(0xffb0d0, 0.35));
-    const key = new THREE.PointLight(0xff6b9d, 2.4, 30);
-    key.position.set(3, 4, 4);
+    // Soft romantic lighting
+    scene.add(new THREE.AmbientLight(0xffd0e0, 0.45));
+    const key = new THREE.DirectionalLight(0xffe8f0, 1.35);
+    key.position.set(4, 8, 5);
     scene.add(key);
-    const rim = new THREE.PointLight(0xffd0ef, 1.6, 25);
-    rim.position.set(-3, 2, -2);
+    const fill = new THREE.PointLight(0xff8fb8, 1.2, 25);
+    fill.position.set(-3, 3, 2);
+    scene.add(fill);
+    const rim = new THREE.PointLight(0xffffff, 0.7, 20);
+    rim.position.set(0, 2, -4);
     scene.add(rim);
-    const bottom = new THREE.PointLight(0xc44dff, 0.8, 20);
-    bottom.position.set(0, -2, 2);
-    scene.add(bottom);
 
-    // Distant sparkle stars
+    // Soft background glow
     {
-      const n = 900;
+      const n = 700;
       const pos = new Float32Array(n * 3);
       for (let i = 0; i < n; i++) {
-        const r = 12 + Math.random() * 40;
+        const r = 10 + Math.random() * 35;
         const th = Math.random() * Math.PI * 2;
         const ph = Math.acos(2 * Math.random() - 1);
         pos[i * 3] = r * Math.sin(ph) * Math.cos(th);
@@ -150,9 +150,9 @@
       geo.setAttribute("position", new THREE.BufferAttribute(pos, 3));
       scene.add(new THREE.Points(geo, new THREE.PointsMaterial({
         color: 0xffd6ea,
-        size: 0.05,
+        size: 0.045,
         transparent: true,
-        opacity: 0.65,
+        opacity: 0.55,
         blending: THREE.AdditiveBlending,
         depthWrite: false,
       })));
@@ -161,347 +161,366 @@
     const roseRoot = new THREE.Group();
     scene.add(roseRoot);
 
-    // Glass / crystal material
-    function glassMat(color, opacity = 0.55) {
-      return new THREE.MeshPhysicalMaterial({
-        color,
+    // —— Realistic petal material ——
+    function petalMat(hex, roughness = 0.55) {
+      return new THREE.MeshStandardMaterial({
+        color: hex,
+        roughness,
         metalness: 0.05,
-        roughness: 0.12,
-        transmission: 0.55,
-        thickness: 0.6,
-        transparent: true,
-        opacity,
-        ior: 1.45,
-        emissive: color,
-        emissiveIntensity: 0.22,
         side: THREE.DoubleSide,
-        clearcoat: 1,
-        clearcoatRoughness: 0.08,
       });
     }
 
-    // —— Shiny sparkle at a world-ish local point ——
-    function makeSparkle(size = 0.12) {
+    // Shiny dew / highlight sparkles on tips
+    function makeSparkle(size = 0.1) {
       const g = new THREE.Group();
       const mat = new THREE.MeshBasicMaterial({
         color: 0xffffff,
         transparent: true,
-        opacity: 0.95,
+        opacity: 0.9,
         blending: THREE.AdditiveBlending,
         depthWrite: false,
       });
-      const a = new THREE.Mesh(new THREE.PlaneGeometry(size * 0.18, size * 1.6), mat);
-      const b = new THREE.Mesh(new THREE.PlaneGeometry(size * 1.6, size * 0.18), mat.clone());
-      const core = new THREE.Mesh(
-        new THREE.SphereGeometry(size * 0.18, 8, 8),
+      g.add(new THREE.Mesh(new THREE.PlaneGeometry(size * 0.15, size * 1.4), mat));
+      g.add(new THREE.Mesh(new THREE.PlaneGeometry(size * 1.4, size * 0.15), mat.clone()));
+      g.add(new THREE.Mesh(
+        new THREE.SphereGeometry(size * 0.14, 8, 8),
         new THREE.MeshBasicMaterial({
-          color: 0xffe0f0,
+          color: 0xffe8f4,
           transparent: true,
           opacity: 1,
           blending: THREE.AdditiveBlending,
           depthWrite: false,
         })
-      );
-      g.add(a, b, core);
-      g.userData.spin = 0.8 + Math.random() * 1.4;
+      ));
+      g.userData.spin = 0.7 + Math.random() * 1.5;
       g.userData.phase = Math.random() * Math.PI * 2;
       return g;
     }
 
     const sparkles = [];
-
     function addSparkle(parent, x, y, z, size) {
       const s = makeSparkle(size);
       s.position.set(x, y, z);
       parent.add(s);
       sparkles.push(s);
-      return s;
     }
 
-    // —— Petal shape ——
-    function petalShape(w = 1, h = 1.4) {
+    // Organic rose petal curve
+    function petalShape(w, h, curl = 0.15) {
       const s = new THREE.Shape();
       s.moveTo(0, 0);
-      s.bezierCurveTo(w * 0.7, h * 0.15, w * 0.85, h * 0.55, 0, h);
-      s.bezierCurveTo(-w * 0.85, h * 0.55, -w * 0.7, h * 0.15, 0, 0);
+      s.bezierCurveTo(w * 0.55, h * 0.08, w * (0.95 - curl), h * 0.45, w * 0.2, h);
+      s.bezierCurveTo(0, h * 1.05, 0, h * 1.05, -w * 0.2, h);
+      s.bezierCurveTo(-w * (0.95 - curl), h * 0.45, -w * 0.55, h * 0.08, 0, 0);
       return s;
     }
 
-    function makePetal(scale = 1, color = 0xff7aa8) {
-      const geo = new THREE.ExtrudeGeometry(petalShape(0.9 * scale, 1.35 * scale), {
-        depth: 0.06 * scale,
+    function makePetal(w, h, color, depth = 0.04) {
+      const geo = new THREE.ExtrudeGeometry(petalShape(w, h), {
+        depth,
         bevelEnabled: true,
-        bevelThickness: 0.04 * scale,
-        bevelSize: 0.03 * scale,
-        bevelSegments: 3,
-        curveSegments: 18,
+        bevelThickness: depth * 0.6,
+        bevelSize: depth * 0.5,
+        bevelSegments: 2,
+        curveSegments: 22,
       });
       geo.center();
-      const mesh = new THREE.Mesh(geo, glassMat(color, 0.62));
-      return mesh;
-    }
-
-    // Bloom layers of petals
-    const bloomGroup = new THREE.Group();
-    bloomGroup.position.y = 1.55;
-    roseRoot.add(bloomGroup);
-
-    const petalColors = [0xff8fb8, 0xff6b9d, 0xffa0c8, 0xff4d88, 0xffc0d8];
-
-    // Outer ring of petals
-    for (let i = 0; i < 8; i++) {
-      const petal = makePetal(1.05, petalColors[i % petalColors.length]);
-      const a = (i / 8) * Math.PI * 2;
-      petal.position.set(Math.cos(a) * 0.55, Math.sin(a * 2) * 0.08, Math.sin(a) * 0.55);
-      petal.lookAt(0, 0.4, 0);
-      petal.rotateX(-0.85);
-      bloomGroup.add(petal);
-      // shiny corners on petal tips
-      addSparkle(petal, 0, 0.55, 0.05, 0.14);
-      addSparkle(petal, 0.35, -0.1, 0.04, 0.08);
-      addSparkle(petal, -0.35, -0.1, 0.04, 0.08);
-    }
-
-    // Mid layer
-    for (let i = 0; i < 6; i++) {
-      const petal = makePetal(0.78, petalColors[(i + 2) % petalColors.length]);
-      const a = (i / 6) * Math.PI * 2 + 0.35;
-      petal.position.set(Math.cos(a) * 0.28, 0.12, Math.sin(a) * 0.28);
-      petal.lookAt(0, 0.5, 0);
-      petal.rotateX(-1.05);
-      bloomGroup.add(petal);
-      addSparkle(petal, 0, 0.42, 0.04, 0.11);
-    }
-
-    // Inner bud
-    for (let i = 0; i < 5; i++) {
-      const petal = makePetal(0.48, 0xffd0e4);
-      const a = (i / 5) * Math.PI * 2 + 0.2;
-      petal.position.set(Math.cos(a) * 0.1, 0.28, Math.sin(a) * 0.1);
-      petal.lookAt(0, 0.7, 0);
-      petal.rotateX(-1.25);
-      bloomGroup.add(petal);
-    }
-
-    // Crystal core
-    const core = new THREE.Mesh(
-      new THREE.IcosahedronGeometry(0.28, 1),
-      new THREE.MeshPhysicalMaterial({
-        color: 0xffe8f2,
-        metalness: 0.2,
-        roughness: 0.05,
-        transmission: 0.7,
-        transparent: true,
-        opacity: 0.85,
-        emissive: 0xff9ec0,
-        emissiveIntensity: 0.55,
-        clearcoat: 1,
-      })
-    );
-    core.position.y = 0.35;
-    bloomGroup.add(core);
-    addSparkle(bloomGroup, 0, 0.75, 0.2, 0.2);
-    addSparkle(bloomGroup, 0.45, 0.4, 0.35, 0.12);
-    addSparkle(bloomGroup, -0.4, 0.5, 0.3, 0.12);
-
-    // Stem
-    const stem = new THREE.Mesh(
-      new THREE.CylinderGeometry(0.05, 0.07, 2.6, 16),
-      glassMat(0xff6b9d, 0.7)
-    );
-    stem.position.y = 0.05;
-    roseRoot.add(stem);
-    addSparkle(stem, 0.04, 0.9, 0.04, 0.09);
-    addSparkle(stem, -0.04, 0.2, 0.04, 0.08);
-    addSparkle(stem, 0.03, -0.7, 0.03, 0.08);
-
-    // —— Orbiting crystal ring (thorn / light ring) ——
-    const ringPivot = new THREE.Group();
-    ringPivot.position.y = 0.15;
-    ringPivot.rotation.x = 0.55;
-    ringPivot.rotation.z = 0.25;
-    roseRoot.add(ringPivot);
-
-    const ringRadius = 1.55;
-    const ringTube = new THREE.Mesh(
-      new THREE.TorusGeometry(ringRadius, 0.028, 12, 96),
-      new THREE.MeshPhysicalMaterial({
-        color: 0xff8fb8,
-        metalness: 0.35,
-        roughness: 0.15,
-        emissive: 0xff4d88,
-        emissiveIntensity: 0.65,
-        transparent: true,
-        opacity: 0.9,
-        clearcoat: 1,
-      })
-    );
-    ringPivot.add(ringTube);
-
-    // Spiky thorn accents along the ring
-    for (let i = 0; i < 18; i++) {
-      const a = (i / 18) * Math.PI * 2;
-      const spike = new THREE.Mesh(
-        new THREE.ConeGeometry(0.045, 0.22, 5),
-        glassMat(0xffa0c8, 0.85)
-      );
-      spike.position.set(Math.cos(a) * ringRadius, Math.sin(a) * ringRadius, 0);
-      spike.lookAt(0, 0, 0);
-      spike.rotateX(Math.PI / 2);
-      ringTube.add(spike);
-      if (i % 2 === 0) {
-        addSparkle(spike, 0, 0.12, 0, 0.1);
+      // Gentle cup bend
+      const pos = geo.attributes.position;
+      for (let i = 0; i < pos.count; i++) {
+        const y = pos.getY(i);
+        const x = pos.getX(i);
+        pos.setZ(i, pos.getZ(i) - Math.pow(Math.max(0, y + h * 0.4), 1.4) * 0.12 - Math.abs(x) * 0.05);
       }
+      pos.needsUpdate = true;
+      geo.computeVertexNormals();
+      return new THREE.Mesh(geo, petalMat(color));
     }
 
-    // Floating butterflies & stars on the ring
-    function makeButterflyTexture() {
-      const c = document.createElement("canvas");
-      c.width = 128; c.height = 128;
-      const g = c.getContext("2d");
-      g.clearRect(0, 0, 128, 128);
-      g.fillStyle = "#ffb0d0";
-      g.beginPath();
-      g.ellipse(40, 64, 28, 36, -0.4, 0, Math.PI * 2);
-      g.ellipse(88, 64, 28, 36, 0.4, 0, Math.PI * 2);
-      g.fill();
-      g.fillStyle = "#ffe0ef";
-      g.fillRect(60, 40, 8, 48);
-      const tex = new THREE.CanvasTexture(c);
-      tex.colorSpace = THREE.SRGBColorSpace;
-      return tex;
-    }
+    const bloom = new THREE.Group();
+    bloom.position.y = 2.05;
+    roseRoot.add(bloom);
 
-    function makeStarTexture() {
-      const c = document.createElement("canvas");
-      c.width = 128; c.height = 128;
-      const g = c.getContext("2d");
-      g.clearRect(0, 0, 128, 128);
-      g.translate(64, 64);
-      g.fillStyle = "#fff";
-      g.shadowColor = "#ff8fb8";
-      g.shadowBlur = 16;
-      for (let i = 0; i < 4; i++) {
-        g.rotate(Math.PI / 2);
-        g.beginPath();
-        g.moveTo(0, 0);
-        g.lineTo(6, -50);
-        g.lineTo(-6, -50);
-        g.closePath();
-        g.fill();
+    // Outer open petals (more realistic rose layering)
+    const layers = [
+      { count: 9, radius: 0.62, scale: [0.95, 1.25], tilt: -0.55, colors: [0xe83a6e, 0xd6285a, 0xf04d7a], y: -0.05 },
+      { count: 8, radius: 0.42, scale: [0.78, 1.05], tilt: -0.75, colors: [0xff5a8a, 0xe83a6e, 0xff6b9d], y: 0.08 },
+      { count: 7, radius: 0.26, scale: [0.58, 0.82], tilt: -0.95, colors: [0xff7aa8, 0xff5a8a, 0xff8fb8], y: 0.2 },
+      { count: 6, radius: 0.12, scale: [0.4, 0.58], tilt: -1.15, colors: [0xffa0c0, 0xff8fb8, 0xffb3cc], y: 0.32 },
+      { count: 5, radius: 0.04, scale: [0.26, 0.4], tilt: -1.3, colors: [0xffc8dc, 0xffb3cc], y: 0.42 },
+    ];
+
+    layers.forEach((layer, li) => {
+      for (let i = 0; i < layer.count; i++) {
+        const a = (i / layer.count) * Math.PI * 2 + li * 0.22;
+        const [sw, sh] = layer.scale;
+        const color = layer.colors[i % layer.colors.length];
+        const petal = makePetal(sw, sh, color, 0.035);
+        petal.position.set(
+          Math.cos(a) * layer.radius,
+          layer.y + Math.sin(a * 3) * 0.02,
+          Math.sin(a) * layer.radius
+        );
+        petal.lookAt(0, layer.y + 0.55, 0);
+        petal.rotateX(layer.tilt);
+        petal.rotateZ((Math.random() - 0.5) * 0.15);
+        bloom.add(petal);
+
+        if (li < 3 && i % 2 === 0) {
+          addSparkle(petal, 0, sh * 0.35, 0.03, 0.09 + (2 - li) * 0.02);
+        }
       }
-      g.beginPath();
-      g.arc(0, 0, 8, 0, Math.PI * 2);
-      g.fill();
-      const tex = new THREE.CanvasTexture(c);
-      tex.colorSpace = THREE.SRGBColorSpace;
-      return tex;
-    }
-
-    const floaters = [];
-    const butterflyTex = makeButterflyTexture();
-    const starTex = makeStarTexture();
-
-    [
-      { tex: butterflyTex, angle: 0.4, scale: 0.55 },
-      { tex: butterflyTex, angle: 2.6, scale: 0.45 },
-      { tex: starTex, angle: 1.3, scale: 0.4 },
-      { tex: starTex, angle: 4.0, scale: 0.35 },
-      { tex: starTex, angle: 5.2, scale: 0.3 },
-    ].forEach((f) => {
-      const spr = new THREE.Sprite(
-        new THREE.SpriteMaterial({
-          map: f.tex,
-          transparent: true,
-          depthWrite: false,
-          blending: THREE.AdditiveBlending,
-        })
-      );
-      spr.userData.angle = f.angle;
-      spr.userData.radius = ringRadius;
-      spr.userData.bob = Math.random() * Math.PI * 2;
-      spr.scale.set(f.scale, f.scale, 1);
-      ringPivot.add(spr);
-      floaters.push(spr);
-      addSparkle(spr, 0, 0, 0, 0.08);
     });
 
-    // Soft aura behind rose
-    const aura = new THREE.Mesh(
-      new THREE.SphereGeometry(2.2, 32, 32),
+    // Soft bud center
+    const bud = new THREE.Mesh(
+      new THREE.SphereGeometry(0.16, 20, 16),
+      petalMat(0xffd0e0, 0.45)
+    );
+    bud.position.y = 0.48;
+    bud.scale.set(1, 1.15, 1);
+    bloom.add(bud);
+    addSparkle(bloom, 0, 0.72, 0.12, 0.16);
+
+    // —— Green stem ——
+    const stemMat = new THREE.MeshStandardMaterial({
+      color: 0x2f6b3a,
+      roughness: 0.75,
+      metalness: 0.05,
+    });
+    const stem = new THREE.Mesh(new THREE.CylinderGeometry(0.045, 0.065, 2.5, 14), stemMat);
+    stem.position.y = 0.55;
+    roseRoot.add(stem);
+
+    // Slight stem curve via segments
+    const stemCurve = new THREE.Group();
+    roseRoot.add(stemCurve);
+    for (let i = 0; i < 5; i++) {
+      const seg = new THREE.Mesh(
+        new THREE.CylinderGeometry(0.048 - i * 0.002, 0.052 - i * 0.002, 0.5, 12),
+        stemMat
+      );
+      seg.position.y = 0.15 + i * 0.48;
+      seg.position.x = Math.sin(i * 0.35) * 0.04;
+      seg.rotation.z = Math.sin(i * 0.4) * 0.06;
+      stemCurve.add(seg);
+    }
+    stem.visible = false;
+
+    // Leaves
+    function makeLeaf() {
+      const shape = new THREE.Shape();
+      shape.moveTo(0, 0);
+      shape.bezierCurveTo(0.35, 0.2, 0.4, 0.7, 0, 1.1);
+      shape.bezierCurveTo(-0.4, 0.7, -0.35, 0.2, 0, 0);
+      const geo = new THREE.ExtrudeGeometry(shape, {
+        depth: 0.02,
+        bevelEnabled: false,
+        curveSegments: 16,
+      });
+      geo.center();
+      const leaf = new THREE.Mesh(
+        geo,
+        new THREE.MeshStandardMaterial({
+          color: 0x3a8f4a,
+          roughness: 0.7,
+          side: THREE.DoubleSide,
+        })
+      );
+      return leaf;
+    }
+
+    [[-0.9, 0.35], [1.05, -0.4], [-0.55, 0.15]].forEach(([y, rot], i) => {
+      const leaf = makeLeaf();
+      leaf.scale.set(0.55 + i * 0.08, 0.55 + i * 0.08, 0.55);
+      leaf.position.set(i === 1 ? 0.12 : -0.12, 0.7 + i * 0.35, 0);
+      leaf.rotation.z = (i === 1 ? 1.1 : -1.1) + rot * 0.2;
+      leaf.rotation.y = i === 1 ? 0.4 : -0.3;
+      leaf.rotation.x = -0.35;
+      roseRoot.add(leaf);
+    });
+
+    // Small thorns
+    for (let i = 0; i < 6; i++) {
+      const thorn = new THREE.Mesh(
+        new THREE.ConeGeometry(0.03, 0.12, 5),
+        new THREE.MeshStandardMaterial({ color: 0x245530, roughness: 0.8 })
+      );
+      thorn.position.set(
+        Math.cos(i * 1.7) * 0.06,
+        0.4 + i * 0.32,
+        Math.sin(i * 1.7) * 0.06
+      );
+      thorn.lookAt(0, thorn.position.y, 0);
+      thorn.rotateX(Math.PI / 2);
+      roseRoot.add(thorn);
+    }
+
+    // Soft ground shadow
+    const shadow = new THREE.Mesh(
+      new THREE.CircleGeometry(1.4, 32),
       new THREE.MeshBasicMaterial({
-        color: 0xff4d88,
+        color: 0x000000,
         transparent: true,
-        opacity: 0.08,
-        blending: THREE.AdditiveBlending,
+        opacity: 0.35,
         depthWrite: false,
       })
     );
-    aura.position.y = 1.2;
-    roseRoot.add(aura);
+    shadow.rotation.x = -Math.PI / 2;
+    shadow.position.y = -0.05;
+    roseRoot.add(shadow);
 
-    // Auto-spin + user can override with drag
+    // —— Flying butterflies (3D with flapping wings) ——
+    function makeButterfly(colorA, colorB, scale = 1) {
+      const group = new THREE.Group();
+
+      const body = new THREE.Mesh(
+        new THREE.CapsuleGeometry(0.02, 0.14, 4, 8),
+        new THREE.MeshStandardMaterial({ color: 0x2a1a22, roughness: 0.6 })
+      );
+      body.rotation.z = Math.PI / 2;
+      group.add(body);
+
+      const wingShape = new THREE.Shape();
+      wingShape.moveTo(0, 0);
+      wingShape.bezierCurveTo(0.15, 0.25, 0.45, 0.35, 0.5, 0.05);
+      wingShape.bezierCurveTo(0.48, -0.15, 0.25, -0.2, 0, 0);
+      wingShape.moveTo(0, 0);
+      wingShape.bezierCurveTo(0.1, -0.15, 0.35, -0.35, 0.4, -0.1);
+      wingShape.bezierCurveTo(0.3, 0.05, 0.1, 0.05, 0, 0);
+
+      const wingGeo = new THREE.ShapeGeometry(wingShape, 16);
+      const wingMatL = new THREE.MeshStandardMaterial({
+        color: colorA,
+        roughness: 0.4,
+        metalness: 0.1,
+        side: THREE.DoubleSide,
+        emissive: colorA,
+        emissiveIntensity: 0.15,
+      });
+      const wingMatR = wingMatL.clone();
+      wingMatR.color = new THREE.Color(colorB);
+      wingMatR.emissive = new THREE.Color(colorB);
+
+      const left = new THREE.Group();
+      const right = new THREE.Group();
+      const lw = new THREE.Mesh(wingGeo, wingMatL);
+      const rw = new THREE.Mesh(wingGeo, wingMatR);
+      rw.scale.x = -1;
+      left.add(lw);
+      right.add(rw);
+      left.position.x = -0.02;
+      right.position.x = 0.02;
+      group.add(left, right);
+
+      group.scale.setScalar(scale);
+      group.userData.left = left;
+      group.userData.right = right;
+      group.userData.flapSpeed = 10 + Math.random() * 6;
+      group.userData.flapPhase = Math.random() * Math.PI * 2;
+      group.userData.angle = Math.random() * Math.PI * 2;
+      group.userData.radius = 1.6 + Math.random() * 2.2;
+      group.userData.height = 0.8 + Math.random() * 2.2;
+      group.userData.speed = 0.35 + Math.random() * 0.45;
+      group.userData.bob = Math.random() * Math.PI * 2;
+      group.userData.wander = 0.3 + Math.random() * 0.5;
+      return group;
+    }
+
+    const butterflies = [
+      makeButterfly(0xff6b9d, 0xffb3c9, 1.1),
+      makeButterfly(0xff8fb8, 0xffd0e4, 0.9),
+      makeButterfly(0xe83a6e, 0xff7aa8, 1.0),
+      makeButterfly(0xc44dff, 0xff9ed8, 0.85),
+      makeButterfly(0xff4d88, 0xffc0d8, 0.95),
+      makeButterfly(0xffa0c0, 0xffffff, 0.75),
+    ];
+    butterflies.forEach((b) => scene.add(b));
+
+    // Tiny flying sparkles around rose
+    for (let i = 0; i < 12; i++) {
+      addSparkle(scene, (Math.random() - 0.5) * 4, 0.5 + Math.random() * 3, (Math.random() - 0.5) * 4, 0.07);
+      const s = sparkles[sparkles.length - 1];
+      s.userData.orbit = true;
+      s.userData.angle = Math.random() * Math.PI * 2;
+      s.userData.radius = 1.2 + Math.random() * 2;
+      s.userData.height = 0.5 + Math.random() * 2.5;
+      s.userData.speed = 0.2 + Math.random() * 0.4;
+    }
+
     let autoSpin = true;
     let userInteracting = false;
-
     controls.addEventListener("start", () => {
       userInteracting = true;
       autoSpin = false;
     });
     controls.addEventListener("end", () => {
       userInteracting = false;
-      // resume gentle spin after a pause
       setTimeout(() => {
         if (!userInteracting) autoSpin = true;
-      }, 1800);
+      }, 2000);
     });
 
     const clock = new THREE.Clock();
+    const _look = new THREE.Vector3();
+    const _fwd = new THREE.Vector3();
 
     function animate() {
       requestAnimationFrame(animate);
       const t = clock.getElapsedTime();
-      const delta = clock.getDelta();
+      const delta = Math.min(0.05, clock.getDelta());
 
       controls.update();
 
       if (autoSpin) {
-        roseRoot.rotation.y += delta * 0.35;
+        roseRoot.rotation.y += delta * 0.22;
       }
 
-      // Ring keeps orbiting
-      ringPivot.rotation.z = 0.25 + Math.sin(t * 0.4) * 0.08;
-      ringTube.rotation.z = t * 0.55;
+      // Soft bloom sway
+      bloom.rotation.y = Math.sin(t * 0.45) * 0.06;
+      bloom.scale.setScalar(1 + Math.sin(t * 1.4) * 0.015);
 
-      // Petals breathe slightly
-      bloomGroup.rotation.y = Math.sin(t * 0.5) * 0.08;
-      bloomGroup.scale.setScalar(1 + Math.sin(t * 1.6) * 0.02);
-      core.rotation.y = t * 0.8;
-      core.rotation.x = t * 0.35;
+      // Butterflies fly in lively orbits around the rose
+      for (const b of butterflies) {
+        const d = b.userData;
+        d.angle += delta * d.speed;
 
-      // Floaters on ring
-      for (const f of floaters) {
-        const a = f.userData.angle + t * 0.55;
-        f.position.set(
-          Math.cos(a) * f.userData.radius,
-          Math.sin(a) * f.userData.radius,
-          Math.sin(t * 2 + f.userData.bob) * 0.15
-        );
+        const wobble = Math.sin(t * d.wander + d.bob) * 0.45;
+        const r = d.radius + Math.sin(t * 0.8 + d.bob) * 0.35;
+        const x = Math.cos(d.angle) * r + Math.cos(d.angle * 2) * wobble * 0.3;
+        const z = Math.sin(d.angle) * r + Math.sin(d.angle * 1.5) * wobble * 0.3;
+        const y = d.height + Math.sin(t * 2.2 + d.bob) * 0.45 + Math.cos(d.angle * 2) * 0.2;
+
+        // Face flight direction
+        _fwd.set(x - b.position.x, y - b.position.y, z - b.position.z);
+        b.position.set(x, y, z);
+        if (_fwd.lengthSq() > 0.00001) {
+          _look.copy(b.position).add(_fwd);
+          b.lookAt(_look);
+          b.rotateY(Math.PI / 2);
+        }
+
+        // Flap wings
+        const flap = Math.sin(t * d.flapSpeed + d.flapPhase) * 0.7;
+        d.left.rotation.y = -0.35 + flap;
+        d.right.rotation.y = 0.35 - flap;
       }
 
-      // Sparkles twinkle + face camera
+      // Sparkles
       for (const s of sparkles) {
         s.quaternion.copy(camera.quaternion);
-        const tw = 0.55 + 0.45 * Math.sin(t * s.userData.spin * 3 + s.userData.phase);
+        const tw = 0.5 + 0.5 * Math.sin(t * s.userData.spin * 3 + s.userData.phase);
         s.scale.setScalar(tw);
+        if (s.userData.orbit) {
+          s.userData.angle += delta * s.userData.speed;
+          s.position.x = Math.cos(s.userData.angle) * s.userData.radius;
+          s.position.z = Math.sin(s.userData.angle) * s.userData.radius;
+          s.position.y = s.userData.height + Math.sin(t * 2 + s.userData.phase) * 0.25;
+        }
       }
 
-      // Moving light for glossy highlight sweep
-      key.position.x = Math.cos(t * 0.7) * 3.5;
-      key.position.z = Math.sin(t * 0.7) * 3.5;
-      rim.intensity = 1.3 + Math.sin(t * 2) * 0.35;
-
-      aura.material.opacity = 0.06 + Math.sin(t * 1.5) * 0.025;
+      fill.intensity = 1.05 + Math.sin(t * 1.5) * 0.2;
 
       composer.render();
     }
