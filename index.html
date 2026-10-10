@@ -9,67 +9,52 @@
   <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700&display=swap" rel="stylesheet" />
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
-
     html, body {
       height: 100%;
       overflow: hidden;
       background: #000;
       font-family: "Outfit", sans-serif;
       color: #fff;
-      touch-action: manipulation;
+      touch-action: none;
     }
-
-    #universe {
+    #c {
       position: fixed;
       inset: 0;
       width: 100%;
       height: 100%;
       display: block;
-      z-index: 1;
-      cursor: default;
     }
-
-    #universe.clickable { cursor: pointer; }
-
     .hud {
       position: fixed;
-      left: 0;
-      right: 0;
-      top: 0;
-      z-index: 3;
-      padding: 1.25rem 1rem 0;
+      top: 0; left: 0; right: 0;
+      z-index: 5;
+      padding: 1.1rem 1rem 0;
       text-align: center;
       pointer-events: none;
       transition: opacity 0.6s ease;
     }
-
     .hud.hidden { opacity: 0; }
-
     .hud h1 {
-      font-size: clamp(1.35rem, 5vw, 1.85rem);
+      font-size: clamp(1.25rem, 4.8vw, 1.75rem);
       font-weight: 700;
       letter-spacing: -0.02em;
-      text-shadow: 0 0 24px rgba(255, 100, 150, 0.55);
+      text-shadow: 0 0 22px rgba(255, 120, 180, 0.7);
     }
-
     .hud p {
-      margin-top: 0.4rem;
-      font-size: 0.95rem;
-      color: rgba(255, 210, 225, 0.75);
+      margin-top: 0.35rem;
+      font-size: 0.92rem;
+      color: rgba(255, 210, 230, 0.78);
     }
-
     .hud .progress {
-      margin-top: 0.55rem;
-      font-size: 0.82rem;
-      font-weight: 500;
+      margin-top: 0.45rem;
+      font-size: 0.8rem;
       letter-spacing: 0.06em;
-      color: rgba(255, 150, 190, 0.85);
+      color: rgba(255, 160, 200, 0.9);
     }
-
     .modal {
       position: fixed;
       inset: 0;
-      z-index: 10;
+      z-index: 20;
       display: grid;
       place-items: center;
       padding: 1.25rem;
@@ -79,52 +64,39 @@
       visibility: hidden;
       transition: opacity 0.3s ease, visibility 0.3s ease;
     }
-
-    .modal.open {
-      opacity: 1;
-      visibility: visible;
-    }
-
+    .modal.open { opacity: 1; visibility: visible; }
     .modal-card {
       width: min(100%, 340px);
       background: linear-gradient(165deg, #fff7fa, #ffe4ee);
       color: #5c2a3d;
       border-radius: 22px;
-      padding: 1.5rem 1.35rem 1.3rem;
+      padding: 1.5rem 1.3rem 1.25rem;
       text-align: center;
       box-shadow: 0 24px 60px rgba(0, 0, 0, 0.45);
-      transform: translateY(14px) scale(0.96);
+      transform: translateY(12px) scale(0.96);
       transition: transform 0.35s cubic-bezier(0.22, 1, 0.36, 1);
     }
-
     .modal.open .modal-card { transform: none; }
-
-    .modal-card img {
-      width: 96px;
-      height: 96px;
-      object-fit: cover;
-      border-radius: 50%;
-      margin: 0 auto 1rem;
-      display: block;
-      box-shadow: 0 0 0 3px #fff, 0 8px 24px rgba(232, 90, 140, 0.35);
+    .modal-emoji {
+      font-size: 3.2rem;
+      line-height: 1;
+      margin-bottom: 0.7rem;
+      filter: drop-shadow(0 8px 16px rgba(232, 90, 140, 0.35));
     }
-
     .modal-card h2 {
-      font-size: 0.8rem;
+      font-size: 0.78rem;
       font-weight: 600;
       letter-spacing: 0.14em;
       text-transform: uppercase;
       color: rgba(92, 42, 61, 0.5);
-      margin-bottom: 0.5rem;
+      margin-bottom: 0.45rem;
     }
-
     .modal-card p {
-      font-size: clamp(1.2rem, 4.5vw, 1.45rem);
+      font-size: clamp(1.15rem, 4.4vw, 1.4rem);
       font-weight: 600;
       line-height: 1.4;
-      margin-bottom: 1.25rem;
+      margin-bottom: 1.2rem;
     }
-
     .modal-card button {
       appearance: none;
       border: none;
@@ -133,65 +105,49 @@
       font-family: inherit;
       font-weight: 600;
       font-size: 0.95rem;
-      padding: 0.8rem 1.6rem;
+      padding: 0.78rem 1.5rem;
       border-radius: 12px;
       cursor: pointer;
     }
-
     .finale {
       position: fixed;
       inset: 0;
-      z-index: 8;
+      z-index: 15;
       display: grid;
       place-items: center;
       padding: 1.5rem;
-      background: rgba(0, 0, 0, 0.35);
+      background: rgba(0, 0, 0, 0.4);
       opacity: 0;
       visibility: hidden;
       transition: opacity 0.7s ease, visibility 0.7s ease;
     }
-
-    .finale.show {
-      opacity: 1;
-      visibility: visible;
-    }
-
-    .finale.gone {
-      opacity: 0;
-      visibility: hidden;
-      pointer-events: none;
-    }
-
+    .finale.show { opacity: 1; visibility: visible; }
+    .finale.gone { opacity: 0; visibility: hidden; pointer-events: none; }
     .finale-inner { text-align: center; max-width: 400px; }
-
     .finale .eyebrow {
       font-size: 0.75rem;
       letter-spacing: 0.22em;
       text-transform: uppercase;
       color: rgba(255, 200, 220, 0.65);
-      margin-bottom: 0.6rem;
+      margin-bottom: 0.55rem;
     }
-
     .finale h1 {
-      font-size: clamp(1.9rem, 7vw, 2.6rem);
+      font-size: clamp(1.9rem, 7vw, 2.55rem);
       font-weight: 700;
-      margin-bottom: 0.5rem;
-      text-shadow: 0 0 28px rgba(255, 100, 150, 0.5);
+      margin-bottom: 0.45rem;
+      text-shadow: 0 0 28px rgba(255, 100, 160, 0.55);
     }
-
     .finale .sub {
-      color: rgba(255, 220, 230, 0.8);
-      margin-bottom: 1.75rem;
-      font-size: 1.1rem;
+      color: rgba(255, 220, 230, 0.82);
+      margin-bottom: 1.7rem;
+      font-size: 1.08rem;
     }
-
     .choices {
       display: flex;
       gap: 0.85rem;
       justify-content: center;
       flex-wrap: wrap;
     }
-
     .btn {
       appearance: none;
       border: none;
@@ -206,38 +162,25 @@
       cursor: pointer;
       box-shadow: 0 0 28px rgba(232, 90, 140, 0.45);
     }
-
     .btn.no {
       background: rgba(255, 255, 255, 0.08);
       border: 1.5px solid rgba(255, 220, 230, 0.35);
       box-shadow: none;
     }
-
-    #heartCanvas {
-      position: fixed;
-      inset: 0;
-      z-index: 6;
-      opacity: 0;
-      pointer-events: none;
-      transition: opacity 1.2s ease;
-    }
-
-    #heartCanvas.on { opacity: 1; }
   </style>
 </head>
 <body>
-  <canvas id="universe"></canvas>
-  <canvas id="heartCanvas"></canvas>
+  <canvas id="c"></canvas>
 
   <div class="hud" id="hud">
     <h1>Universe of Love</h1>
-    <p>Tap the glowing photos floating by</p>
+    <p>Tap the cute icons orbiting the heart</p>
     <p class="progress" id="progress">0 / 6 opened</p>
   </div>
 
   <div class="modal" id="modal">
     <div class="modal-card">
-      <img id="msgImg" alt="" />
+      <div class="modal-emoji" id="msgEmoji">🎀</div>
       <h2 id="msgTitle">A little note</h2>
       <p id="msgText"></p>
       <button type="button" id="msgClose">Got it</button>
@@ -271,315 +214,499 @@
     import { RenderPass } from "three/addons/postprocessing/RenderPass.js";
     import { UnrealBloomPass } from "three/addons/postprocessing/UnrealBloomPass.js";
 
-    /* ========== Universe of Love (VT-style warp) ========== */
-    const canvas = document.getElementById("universe");
-    const ctx = canvas.getContext("2d");
-
-    const MEMORIES = [
-      {
-        img: "https://images.unsplash.com/photo-1518199266791-5375a83190b7?auto=format&fit=crop&w=300&q=80",
-        title: "Memory 1",
-        text: "You make ordinary days feel special.",
-      },
-      {
-        img: "https://images.unsplash.com/photo-1529333166437-7750a6dd5a70?auto=format&fit=crop&w=300&q=80",
-        title: "Memory 2",
-        text: "I smile every time I think about you.",
-      },
-      {
-        img: "https://images.unsplash.com/photo-1490750967868-88aa4486af60?auto=format&fit=crop&w=300&q=80",
-        title: "Memory 3",
-        text: "You're my favorite person to talk to.",
-      },
-      {
-        img: "https://images.unsplash.com/photo-1516589178581-6cd7833ae3b2?auto=format&fit=crop&w=300&q=80",
-        title: "Memory 4",
-        text: "My heart feels calm when you're around.",
-      },
-      {
-        img: "https://images.unsplash.com/photo-1462275646964-a0251f6f6178?auto=format&fit=crop&w=300&q=80",
-        title: "Memory 5",
-        text: "I like you more than you know.",
-      },
-      {
-        img: "https://images.unsplash.com/photo-1474552226712-ac0f0961a954?auto=format&fit=crop&w=300&q=80",
-        title: "Memory 6",
-        text: "Being with you feels like home.",
-      },
+    const ICONS = [
+      { kind: "hellokitty", label: "Hello Kitty", text: "You make my world feel soft and sweet." },
+      { kind: "emoji", emoji: "🕷️", label: "Hero", text: "I smile every time I think of you." },
+      { kind: "emoji", emoji: "🍓", label: "Strawberry", text: "You're my favorite kind of happiness." },
+      { kind: "emoji", emoji: "🌸", label: "Sakura", text: "My heart blooms whenever you're near." },
+      { kind: "emoji", emoji: "🧸", label: "Teddy", text: "I feel safe and warm with you." },
+      { kind: "emoji", emoji: "💘", label: "Cupid", text: "I like you more than words can say." },
     ];
 
-    let W = 0, H = 0, CX = 0, CY = 0;
-    let hearts = [];
-    let photos = [];
-    let running = true;
-    let speed = 4.2;
-    const opened = new Set();
-    let hoveredPhoto = -1;
+    const FLOAT_WORDS = [
+      "I LIKE YOU",
+      "YOU'RE MAGIC",
+      "ALWAYS TOGETHER",
+      "MY HEART",
+      "FOREVER",
+      "BE MINE",
+    ];
 
+    const canvas = document.getElementById("c");
     const hud = document.getElementById("hud");
     const progressEl = document.getElementById("progress");
     const modal = document.getElementById("modal");
-    const msgImg = document.getElementById("msgImg");
+    const msgEmoji = document.getElementById("msgEmoji");
     const msgTitle = document.getElementById("msgTitle");
     const msgText = document.getElementById("msgText");
     const msgClose = document.getElementById("msgClose");
     const finale = document.getElementById("finale");
+    const btnYes = document.getElementById("btnYes");
+    const btnNo = document.getElementById("btnNo");
 
-    function resize() {
-      W = canvas.width = window.innerWidth;
-      H = canvas.height = window.innerHeight;
-      CX = W / 2;
-      CY = H / 2;
+    const opened = new Set();
+    let paused = false;
+    let finaleMode = false; // after yes/no choice
+    let answer = null; // "yes" | "no"
+
+    const scene = new THREE.Scene();
+    scene.fog = new THREE.FogExp2(0x050308, 0.018);
+
+    const camera = new THREE.PerspectiveCamera(55, window.innerWidth / window.innerHeight, 0.1, 200);
+    camera.position.set(0, 10, 22);
+    camera.lookAt(0, 1.5, 0);
+
+    const renderer = new THREE.WebGLRenderer({
+      canvas,
+      antialias: true,
+      powerPreference: "high-performance",
+    });
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+    renderer.setSize(window.innerWidth, window.innerHeight);
+    renderer.setClearColor(0x000000, 1);
+    renderer.toneMapping = THREE.ACESFilmicToneMapping;
+    renderer.toneMappingExposure = 1.1;
+
+    const composer = new EffectComposer(renderer);
+    composer.addPass(new RenderPass(scene, camera));
+    const bloom = new UnrealBloomPass(
+      new THREE.Vector2(window.innerWidth, window.innerHeight),
+      0.95,
+      0.55,
+      0.12
+    );
+    composer.addPass(bloom);
+
+    const root = new THREE.Group();
+    scene.add(root);
+
+    // —— Stars ——
+    {
+      const n = 1800;
+      const pos = new Float32Array(n * 3);
+      for (let i = 0; i < n; i++) {
+        const r = 40 + Math.random() * 80;
+        const th = Math.random() * Math.PI * 2;
+        const ph = Math.acos(2 * Math.random() - 1);
+        pos[i * 3] = r * Math.sin(ph) * Math.cos(th);
+        pos[i * 3 + 1] = r * Math.sin(ph) * Math.sin(th) * 0.55;
+        pos[i * 3 + 2] = r * Math.cos(ph);
+      }
+      const geo = new THREE.BufferGeometry();
+      geo.setAttribute("position", new THREE.BufferAttribute(pos, 3));
+      const stars = new THREE.Points(
+        geo,
+        new THREE.PointsMaterial({
+          color: 0xffd0e4,
+          size: 0.08,
+          transparent: true,
+          opacity: 0.75,
+          blending: THREE.AdditiveBlending,
+          depthWrite: false,
+        })
+      );
+      scene.add(stars);
     }
 
-    function rand(a, b) {
-      return a + Math.random() * (b - a);
+    // —— Spiral galaxy ——
+    function makeGalaxy() {
+      const count = 9000;
+      const pos = new Float32Array(count * 3);
+      const col = new Float32Array(count * 3);
+      const c1 = new THREE.Color("#ff4da6");
+      const c2 = new THREE.Color("#c44dff");
+      const c3 = new THREE.Color("#ff9ec8");
+      const tmp = new THREE.Color();
+
+      for (let i = 0; i < count; i++) {
+        const arm = i % 3;
+        const t = i / count;
+        const radius = Math.pow(t, 0.65) * 14;
+        const spin = radius * 0.55 + arm * ((Math.PI * 2) / 3);
+        const angle = spin + t * Math.PI * 4;
+        const spread = (Math.random() - 0.5) * (0.35 + radius * 0.08);
+
+        pos[i * 3] = Math.cos(angle) * radius + Math.cos(angle) * spread;
+        pos[i * 3 + 2] = Math.sin(angle) * radius + Math.sin(angle) * spread;
+        pos[i * 3 + 1] = (Math.random() - 0.5) * (0.35 + (1 - t) * 0.8);
+
+        if (t < 0.35) tmp.copy(c2).lerp(c1, t / 0.35);
+        else tmp.copy(c1).lerp(c3, (t - 0.35) / 0.65);
+        tmp.multiplyScalar(0.85 + Math.random() * 0.35);
+        col[i * 3] = tmp.r;
+        col[i * 3 + 1] = tmp.g;
+        col[i * 3 + 2] = tmp.b;
+      }
+
+      const geo = new THREE.BufferGeometry();
+      geo.setAttribute("position", new THREE.BufferAttribute(pos, 3));
+      geo.setAttribute("color", new THREE.BufferAttribute(col, 3));
+      const mat = new THREE.PointsMaterial({
+        size: 0.12,
+        vertexColors: true,
+        transparent: true,
+        opacity: 0.9,
+        blending: THREE.AdditiveBlending,
+        depthWrite: false,
+        sizeAttenuation: true,
+      });
+      const galaxy = new THREE.Points(geo, mat);
+      galaxy.rotation.x = -0.55;
+      root.add(galaxy);
+      return galaxy;
+    }
+    const galaxy = makeGalaxy();
+
+    // —— Central particle heart ——
+    function insideHeart(x, y, z) {
+      const a = x * x + 2.25 * y * y + z * z - 1;
+      return a * a * a - x * x * z * z * z - 0.1125 * y * y * z * z * z <= 0;
     }
 
-    // Classic VT heart: two round lobes drawn with thick stroke arcs
-    function Heart() {
-      this.reset(true);
+    function makeCenterHeart(broken = false) {
+      const count = 7000;
+      const pos = new Float32Array(count * 3);
+      const col = new Float32Array(count * 3);
+      const cTip = new THREE.Color("#ff1f6b");
+      const cMid = new THREE.Color("#ff4d9a");
+      const cTop = new THREE.Color("#ffb0d4");
+      const tmp = new THREE.Color();
+
+      let i = 0;
+      while (i < count) {
+        let x = (Math.random() * 2 - 1) * 1.3;
+        let y = (Math.random() * 2 - 1) * 1.2;
+        let z = (Math.random() * 2 - 1) * 1.15;
+        if (!insideHeart(x, y, z)) continue;
+
+        // algebraic heart points along Z → map to Y up
+        let px = x * 2.1;
+        let py = z * 2.1 + 2.4;
+        let pz = y * 2.1;
+
+        if (broken) {
+          const side = px >= 0 ? 1 : -1;
+          px += side * 1.35;
+          py -= 0.35;
+          if (Math.abs(x) < 0.2) {
+            px += side * 0.5;
+            py -= 0.6 + Math.random() * 0.5;
+          }
+        }
+
+        const i3 = i * 3;
+        pos[i3] = px;
+        pos[i3 + 1] = py;
+        pos[i3 + 2] = pz;
+
+        const h = THREE.MathUtils.clamp((py - 0.5) / 4.5, 0, 1);
+        if (h < 0.4) tmp.copy(cTip).lerp(cMid, h / 0.4);
+        else tmp.copy(cMid).lerp(cTop, (h - 0.4) / 0.6);
+        if (broken) tmp.lerp(new THREE.Color("#6a4a58"), 0.45);
+        col[i3] = tmp.r;
+        col[i3 + 1] = tmp.g;
+        col[i3 + 2] = tmp.b;
+        i++;
+      }
+
+      const geo = new THREE.BufferGeometry();
+      geo.setAttribute("position", new THREE.BufferAttribute(pos, 3));
+      geo.setAttribute("color", new THREE.BufferAttribute(col, 3));
+      const mat = new THREE.PointsMaterial({
+        size: broken ? 0.09 : 0.11,
+        vertexColors: true,
+        transparent: true,
+        opacity: 0.95,
+        blending: THREE.AdditiveBlending,
+        depthWrite: false,
+      });
+      const heart = new THREE.Points(geo, mat);
+      root.add(heart);
+      return heart;
     }
 
-    Heart.prototype.reset = function (initial) {
-      this.x = Math.random() * W;
-      this.y = Math.random() * H;
-      // depth: larger z = farther = smaller
-      this.z = initial ? Math.random() * W : 1;
-      this.hue = rand(320, 360); // pink → magenta range (romance)
-      if (Math.random() > 0.72) this.hue = rand(0, 25); // soft red accents
-    };
+    let centerHeart = makeCenterHeart(false);
 
-    Heart.prototype.update = function () {
-      this.z += speed;
-      if (this.z >= W) this.reset(false);
-    };
+    // —— Orbiting small hearts (like the VT code) ——
+    function makeHeartShape() {
+      const s = new THREE.Shape();
+      s.moveTo(0, -0.7);
+      s.bezierCurveTo(-0.9, -0.2, -0.9, 0.7, 0, 0.35);
+      s.bezierCurveTo(0.9, 0.7, 0.9, -0.2, 0, -0.7);
+      return s;
+    }
 
-    Heart.prototype.project = function () {
-      const k = W / this.z;
-      return {
-        x: (this.x - CX) * k + CX,
-        y: (this.y - CY) * k + CY,
-        s: 1.35 * k,
+    const heartGeo = new THREE.ExtrudeGeometry(makeHeartShape(), {
+      depth: 0.25,
+      bevelEnabled: true,
+      bevelThickness: 0.08,
+      bevelSize: 0.06,
+      bevelSegments: 2,
+      curveSegments: 12,
+    });
+    heartGeo.center();
+    heartGeo.rotateX(Math.PI); // tip down → tip up-ish after rotation
+    heartGeo.scale(0.55, 0.55, 0.55);
+
+    const heartMat = new THREE.MeshBasicMaterial({
+      color: 0xff3d7a,
+      transparent: true,
+      opacity: 0.95,
+    });
+
+    const orbitHearts = [];
+    for (let i = 0; i < 48; i++) {
+      const heartMesh = new THREE.Mesh(heartGeo, heartMat.clone());
+      heartMesh.material.color.setHSL(0.92 + Math.random() * 0.06, 0.9, 0.55 + Math.random() * 0.15);
+      heartMesh.userData = {
+        radius: 4 + Math.random() * 14,
+        angle: Math.random() * Math.PI * 2,
+        ySpeed: 0.2 + Math.random() * 0.6,
+        yOffset: -3 + Math.random() * 6,
+        spin: randSpin(),
       };
-    };
-
-    Heart.prototype.draw = function () {
-      const p = this.project();
-      if (p.s < 0.4 || p.s > 90) return;
-
-      const alpha = Math.min(1, (W - this.z) / W + 0.15);
-      ctx.save();
-      ctx.translate(p.x, p.y);
-      ctx.strokeStyle = `hsla(${this.hue}, 100%, 62%, ${alpha})`;
-      ctx.fillStyle = `hsla(${this.hue}, 100%, 58%, ${alpha * 0.35})`;
-      ctx.shadowColor = `hsla(${this.hue}, 100%, 60%, ${alpha * 0.8})`;
-      ctx.shadowBlur = p.s * 2.2;
-      ctx.lineWidth = Math.max(1.2, p.s * 1.55);
-      ctx.lineCap = "round";
-
-      // Signature VT look: two arcs = heart silhouette
-      ctx.beginPath();
-      ctx.arc(-p.s * 0.55, 0, p.s, Math.PI, 0);
-      ctx.arc(p.s * 0.55, 0, p.s, Math.PI, 0);
-      ctx.stroke();
-
-      // soft filled heart tip for clearer shape when closer
-      if (p.s > 4) {
-        ctx.beginPath();
-        ctx.moveTo(-p.s * 1.55, -p.s * 0.1);
-        ctx.bezierCurveTo(-p.s * 1.55, -p.s * 1.2, -p.s * 0.1, -p.s * 1.2, 0, -p.s * 0.35);
-        ctx.bezierCurveTo(p.s * 0.1, -p.s * 1.2, p.s * 1.55, -p.s * 1.2, p.s * 1.55, -p.s * 0.1);
-        ctx.bezierCurveTo(p.s * 1.55, p.s * 0.7, p.s * 0.4, p.s * 1.35, 0, p.s * 1.85);
-        ctx.bezierCurveTo(-p.s * 0.4, p.s * 1.35, -p.s * 1.55, p.s * 0.7, -p.s * 1.55, -p.s * 0.1);
-        ctx.fill();
-      }
-      ctx.restore();
-    };
-
-    function PhotoOrb(memory, index) {
-      this.memory = memory;
-      this.index = index;
-      this.img = new Image();
-      this.img.crossOrigin = "anonymous";
-      this.img.src = memory.img;
-      this.ready = false;
-      this.img.onload = () => { this.ready = true; };
-      this.reset(true);
-      this.screen = { x: 0, y: 0, r: 0 };
+      heartMesh.position.x = Math.cos(heartMesh.userData.angle) * heartMesh.userData.radius;
+      heartMesh.position.z = Math.sin(heartMesh.userData.angle) * heartMesh.userData.radius;
+      heartMesh.position.y = heartMesh.userData.yOffset;
+      heartMesh.scale.setScalar(0.35 + Math.random() * 0.45);
+      root.add(heartMesh);
+      orbitHearts.push(heartMesh);
     }
 
-    PhotoOrb.prototype.reset = function (initial) {
-      const angle = (this.index / MEMORIES.length) * Math.PI * 2 + rand(-0.25, 0.25);
-      const radius = rand(W * 0.18, W * 0.42);
-      this.x = CX + Math.cos(angle) * radius;
-      this.y = CY + Math.sin(angle) * radius * 0.75;
-      this.z = initial ? rand(W * 0.25, W * 0.95) : 8;
-      this.baseSize = rand(52, 72);
-    };
-
-    PhotoOrb.prototype.update = function () {
-      if (!running) return;
-      this.z += speed * 0.55;
-      if (this.z >= W * 1.05) this.reset(false);
-    };
-
-    PhotoOrb.prototype.project = function () {
-      const k = W / Math.max(this.z, 1);
-      const x = (this.x - CX) * k + CX;
-      const y = (this.y - CY) * k + CY;
-      const r = this.baseSize * k * 0.55;
-      this.screen = { x, y, r };
-      return this.screen;
-    };
-
-    PhotoOrb.prototype.draw = function () {
-      const p = this.project();
-      if (p.r < 8 || p.r > 120) return;
-
-      const openedFlag = opened.has(this.index);
-      const hover = hoveredPhoto === this.index;
-      const alpha = Math.min(1, (W - this.z) / W + 0.25);
-
-      ctx.save();
-      ctx.globalAlpha = alpha;
-      ctx.beginPath();
-      ctx.arc(p.x, p.y, p.r + (hover ? 4 : 0), 0, Math.PI * 2);
-      ctx.fillStyle = "#fff";
-      ctx.shadowColor = openedFlag ? "rgba(74, 222, 128, 0.85)" : "rgba(255, 100, 160, 0.9)";
-      ctx.shadowBlur = hover ? 28 : 18;
-      ctx.fill();
-
-      ctx.beginPath();
-      ctx.arc(p.x, p.y, Math.max(1, p.r - 4), 0, Math.PI * 2);
-      ctx.clip();
-
-      if (this.ready) {
-        ctx.drawImage(this.img, p.x - p.r, p.y - p.r, p.r * 2, p.r * 2);
-      } else {
-        ctx.fillStyle = "#ff8fb3";
-        ctx.fillRect(p.x - p.r, p.y - p.r, p.r * 2, p.r * 2);
-      }
-
-      ctx.restore();
-
-      // ring marker
-      ctx.save();
-      ctx.beginPath();
-      ctx.arc(p.x, p.y, p.r + 2, 0, Math.PI * 2);
-      ctx.strokeStyle = openedFlag ? "rgba(74,222,128,0.95)" : "rgba(255,120,170,0.95)";
-      ctx.lineWidth = 2.5;
-      ctx.stroke();
-      ctx.restore();
-    };
-
-    PhotoOrb.prototype.hit = function (mx, my) {
-      const p = this.screen;
-      if (p.r < 10) return false;
-      const dx = mx - p.x;
-      const dy = my - p.y;
-      return dx * dx + dy * dy <= (p.r + 6) * (p.r + 6);
-    };
-
-    function initUniverse() {
-      resize();
-      const count = Math.min(900, Math.floor(W * 0.85));
-      hearts = Array.from({ length: count }, () => new Heart());
-      photos = MEMORIES.map((m, i) => new PhotoOrb(m, i));
+    function randSpin() {
+      return (Math.random() - 0.5) * 1.5;
     }
 
-    function drawUniverse() {
-      // slight trail for warp motion (classic look)
-      ctx.fillStyle = "rgba(0, 0, 0, 0.35)";
-      ctx.fillRect(0, 0, W, H);
+    // —— Clickable icon sprites (Hello Kitty etc.) ——
+    function drawBadgeBase(g, size) {
+      const grd = g.createRadialGradient(size * 0.35, size * 0.3, 10, size * 0.5, size * 0.5, size * 0.48);
+      grd.addColorStop(0, "#ffffff");
+      grd.addColorStop(0.55, "#ffe4f0");
+      grd.addColorStop(1, "#ff8fbc");
+      g.fillStyle = grd;
+      g.beginPath();
+      g.arc(size / 2, size / 2, size * 0.46, 0, Math.PI * 2);
+      g.fill();
+      g.strokeStyle = "rgba(255,255,255,0.95)";
+      g.lineWidth = 10;
+      g.stroke();
+    }
 
-      // center glow
-      const g = ctx.createRadialGradient(CX, CY, 0, CX, CY, Math.max(W, H) * 0.55);
-      g.addColorStop(0, "rgba(80, 20, 50, 0.22)");
-      g.addColorStop(1, "rgba(0, 0, 0, 0)");
-      ctx.fillStyle = g;
-      ctx.fillRect(0, 0, W, H);
+    function makeHelloKittyTexture() {
+      const size = 256;
+      const c = document.createElement("canvas");
+      c.width = size;
+      c.height = size;
+      const g = c.getContext("2d");
+      drawBadgeBase(g, size);
 
-      if (running) {
-        for (let i = 0; i < hearts.length; i++) {
-          hearts[i].update();
-          hearts[i].draw();
-        }
-        // draw far → near so closer photos are on top
-        const sorted = [...photos].sort((a, b) => b.z - a.z);
-        for (const p of sorted) {
-          p.update();
-          p.draw();
-        }
-      } else {
-        for (let i = 0; i < hearts.length; i++) hearts[i].draw();
-        const sorted = [...photos].sort((a, b) => b.z - a.z);
-        for (const p of sorted) p.draw();
-      }
+      const cx = size / 2;
+      const cy = size / 2 + 10;
 
-      requestAnimationFrame(drawUniverse);
+      // ears
+      g.fillStyle = "#fff";
+      g.beginPath();
+      g.ellipse(cx - 48, cy - 52, 28, 36, -0.25, 0, Math.PI * 2);
+      g.ellipse(cx + 48, cy - 52, 28, 36, 0.25, 0, Math.PI * 2);
+      g.fill();
+      g.strokeStyle = "#222";
+      g.lineWidth = 5;
+      g.stroke();
+
+      // head
+      g.beginPath();
+      g.ellipse(cx, cy, 70, 62, 0, 0, Math.PI * 2);
+      g.fillStyle = "#fff";
+      g.fill();
+      g.stroke();
+
+      // bow
+      g.fillStyle = "#ff3b6e";
+      g.beginPath();
+      g.ellipse(cx + 42, cy - 48, 22, 16, 0.4, 0, Math.PI * 2);
+      g.ellipse(cx + 68, cy - 40, 22, 16, -0.2, 0, Math.PI * 2);
+      g.fill();
+      g.beginPath();
+      g.arc(cx + 55, cy - 44, 8, 0, Math.PI * 2);
+      g.fill();
+
+      // eyes + nose + whiskers
+      g.fillStyle = "#222";
+      g.beginPath();
+      g.ellipse(cx - 24, cy + 4, 7, 10, 0, 0, Math.PI * 2);
+      g.ellipse(cx + 24, cy + 4, 7, 10, 0, 0, Math.PI * 2);
+      g.fill();
+      g.fillStyle = "#ffb4c8";
+      g.beginPath();
+      g.ellipse(cx, cy + 18, 7, 5, 0, 0, Math.PI * 2);
+      g.fill();
+      g.strokeStyle = "#222";
+      g.lineWidth = 3;
+      [[-55, 8], [-55, 20], [-55, 32], [55, 8], [55, 20], [55, 32]].forEach(([x, y], i) => {
+        g.beginPath();
+        g.moveTo(cx + (i < 3 ? -18 : 18), cy + 12);
+        g.lineTo(cx + x * 0.7, cy + y - 4);
+        g.stroke();
+      });
+
+      const tex = new THREE.CanvasTexture(c);
+      tex.colorSpace = THREE.SRGBColorSpace;
+      return tex;
+    }
+
+    function makeEmojiTexture(emoji) {
+      const size = 256;
+      const c = document.createElement("canvas");
+      c.width = size;
+      c.height = size;
+      const g = c.getContext("2d");
+      drawBadgeBase(g, size);
+      g.font = "140px serif";
+      g.textAlign = "center";
+      g.textBaseline = "middle";
+      g.fillText(emoji, size / 2, size / 2 + 8);
+      const tex = new THREE.CanvasTexture(c);
+      tex.colorSpace = THREE.SRGBColorSpace;
+      return tex;
+    }
+
+    const iconMeshes = [];
+    ICONS.forEach((icon, index) => {
+      const tex = icon.kind === "hellokitty" ? makeHelloKittyTexture() : makeEmojiTexture(icon.emoji);
+      const mat = new THREE.SpriteMaterial({
+        map: tex,
+        transparent: true,
+        depthWrite: false,
+      });
+      const sprite = new THREE.Sprite(mat);
+      const radius = 6.5 + (index % 3) * 2.8;
+      const angle = (index / ICONS.length) * Math.PI * 2;
+      sprite.userData = {
+        type: "icon",
+        index,
+        icon,
+        radius,
+        angle,
+        ySpeed: 0.35 + Math.random() * 0.35,
+        yOffset: -1.2 + (index % 3) * 1.4,
+        opened: false,
+      };
+      sprite.scale.set(2.1, 2.1, 1);
+      sprite.position.set(
+        Math.cos(angle) * radius,
+        sprite.userData.yOffset,
+        Math.sin(angle) * radius
+      );
+      root.add(sprite);
+      iconMeshes.push(sprite);
+    });
+
+    // —— Orbiting romantic words ——
+    function makeTextTexture(text) {
+      const c = document.createElement("canvas");
+      c.width = 512;
+      c.height = 128;
+      const g = c.getContext("2d");
+      g.clearRect(0, 0, c.width, c.height);
+      g.font = "bold 52px Outfit, sans-serif";
+      g.textAlign = "center";
+      g.textBaseline = "middle";
+      g.shadowColor = "rgba(255, 80, 150, 0.9)";
+      g.shadowBlur = 18;
+      g.fillStyle = "#ffd0e6";
+      g.fillText(text, c.width / 2, c.height / 2);
+      const tex = new THREE.CanvasTexture(c);
+      tex.colorSpace = THREE.SRGBColorSpace;
+      return tex;
+    }
+
+    const wordSprites = [];
+    FLOAT_WORDS.forEach((word, index) => {
+      const sprite = new THREE.Sprite(
+        new THREE.SpriteMaterial({
+          map: makeTextTexture(word),
+          transparent: true,
+          depthWrite: false,
+          blending: THREE.AdditiveBlending,
+        })
+      );
+      sprite.userData = {
+        radius: 8 + (index % 4) * 2.2,
+        angle: (index / FLOAT_WORDS.length) * Math.PI * 2 + 0.4,
+        yOffset: -2 + (index % 4) * 1.3,
+        ySpeed: 0.25 + Math.random() * 0.3,
+      };
+      sprite.scale.set(4.2, 1.05, 1);
+      root.add(sprite);
+      wordSprites.push(sprite);
+    });
+
+    // —— Interaction ——
+    const raycaster = new THREE.Raycaster();
+    const pointer = new THREE.Vector2();
+    let hovered = null;
+
+    function setPointer(e) {
+      const x = e.touches ? e.touches[0].clientX : e.clientX;
+      const y = e.touches ? e.touches[0].clientY : e.clientY;
+      pointer.x = (x / window.innerWidth) * 2 - 1;
+      pointer.y = -(y / window.innerHeight) * 2 + 1;
+    }
+
+    function pickIcon() {
+      raycaster.setFromCamera(pointer, camera);
+      const hits = raycaster.intersectObjects(iconMeshes, false);
+      return hits.length ? hits[0].object : null;
     }
 
     function updateProgress() {
-      progressEl.textContent = `${opened.size} / ${MEMORIES.length} opened`;
+      progressEl.textContent = `${opened.size} / ${ICONS.length} opened`;
     }
 
-    function openMemory(index) {
-      const m = MEMORIES[index];
+    function openIcon(sprite) {
+      const { index, icon } = sprite.userData;
       opened.add(index);
+      sprite.userData.opened = true;
+      sprite.material.opacity = 0.55;
       updateProgress();
-      msgImg.src = m.img;
-      msgTitle.textContent = m.title;
-      msgText.textContent = m.text;
+
+      msgEmoji.textContent = icon.kind === "hellokitty" ? "🎀" : icon.emoji;
+      msgTitle.textContent = icon.label;
+      msgText.textContent = icon.text;
       modal.classList.add("open");
-      running = false;
+      paused = true;
     }
 
     function closeModal() {
       modal.classList.remove("open");
-      running = true;
-      if (opened.size >= MEMORIES.length) {
+      paused = false;
+      if (opened.size >= ICONS.length && !finaleMode && answer === null) {
         setTimeout(() => {
           hud.classList.add("hidden");
           finale.classList.add("show");
-          running = true;
-          speed = 2.2;
-        }, 300);
+        }, 280);
       }
     }
 
-    function pointerPos(e) {
-      if (e.touches && e.touches[0]) {
-        return { x: e.touches[0].clientX, y: e.touches[0].clientY };
+    window.addEventListener("pointermove", (e) => {
+      if (paused || finale.classList.contains("show") || finaleMode) return;
+      setPointer(e);
+      const hit = pickIcon();
+      if (hovered && hovered !== hit) hovered.scale.set(2.1, 2.1, 1);
+      hovered = hit;
+      if (hovered) {
+        hovered.scale.set(2.55, 2.55, 1);
+        canvas.style.cursor = "pointer";
+      } else {
+        canvas.style.cursor = "default";
       }
-      return { x: e.clientX, y: e.clientY };
-    }
-
-    function findPhotoAt(x, y) {
-      // nearest / front-most hit
-      let best = -1;
-      let bestZ = Infinity;
-      for (const p of photos) {
-        if (p.hit(x, y) && p.z < bestZ) {
-          best = p.index;
-          bestZ = p.z;
-        }
-      }
-      return best;
-    }
-
-    canvas.addEventListener("pointermove", (e) => {
-      if (modal.classList.contains("open") || finale.classList.contains("show")) return;
-      const { x, y } = pointerPos(e);
-      hoveredPhoto = findPhotoAt(x, y);
-      canvas.classList.toggle("clickable", hoveredPhoto >= 0);
     });
 
-    canvas.addEventListener("pointerdown", (e) => {
-      if (modal.classList.contains("open") || finale.classList.contains("show") || finale.classList.contains("gone")) return;
-      const { x, y } = pointerPos(e);
-      const idx = findPhotoAt(x, y);
-      if (idx >= 0) openMemory(idx);
+    window.addEventListener("pointerdown", (e) => {
+      if (paused || finale.classList.contains("show") || finaleMode) return;
+      setPointer(e);
+      const hit = pickIcon();
+      if (hit) openIcon(hit);
     });
 
     msgClose.addEventListener("click", closeModal);
@@ -587,278 +714,84 @@
       if (e.target === modal) closeModal();
     });
 
-    window.addEventListener("resize", () => {
-      resize();
-      // keep density roughly stable
-      if (Math.abs(hearts.length - Math.min(900, Math.floor(W * 0.85))) > 80) {
-        initUniverse();
-      }
-    });
+    function choose(choice) {
+      answer = choice;
+      finaleMode = true;
+      finale.classList.add("gone");
+      hud.classList.add("hidden");
 
-    initUniverse();
-    // first paint solid black then animate
-    ctx.fillStyle = "#000";
-    ctx.fillRect(0, 0, W, H);
-    requestAnimationFrame(drawUniverse);
-
-    /* ========== Final heart particles (Yes / No) ========== */
-    const heartCanvas = document.getElementById("heartCanvas");
-    const btnYes = document.getElementById("btnYes");
-    const btnNo = document.getElementById("btnNo");
-
-    const COUNT = 12000;
-    let unlocked = false;
-    let mode = "yes";
-    let forming = false;
-    let formProgress = 0;
-    let startTime = 0;
-    let spinAmount = 0;
-    let spinEase = 0;
-    let breakGap = 0;
-
-    const scene = new THREE.Scene();
-    const camera = new THREE.PerspectiveCamera(50, window.innerWidth / window.innerHeight, 0.1, 100);
-    camera.position.set(0, 0.15, 6.2);
-
-    const renderer = new THREE.WebGLRenderer({
-      canvas: heartCanvas,
-      antialias: true,
-      alpha: true,
-      powerPreference: "high-performance",
-    });
-    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
-    renderer.setSize(window.innerWidth, window.innerHeight);
-    renderer.setClearColor(0x000000, 0);
-    renderer.toneMapping = THREE.ACESFilmicToneMapping;
-    renderer.toneMappingExposure = 1.05;
-
-    const composer = new EffectComposer(renderer);
-    composer.addPass(new RenderPass(scene, camera));
-    const bloom = new UnrealBloomPass(new THREE.Vector2(W, H), 0.78, 0.58, 0.16);
-    composer.addPass(bloom);
-
-    function insideHeart(x, y, z) {
-      const a = x * x + 2.25 * y * y + z * z - 1;
-      return a * a * a - x * x * z * z * z - 0.1125 * y * y * z * z * z <= 0;
+      root.remove(centerHeart);
+      centerHeart.geometry.dispose();
+      centerHeart.material.dispose();
+      centerHeart = makeCenterHeart(choice === "no");
+      bloom.strength = choice === "yes" ? 1.05 : 0.55;
+      bloom.threshold = choice === "yes" ? 0.1 : 0.25;
     }
 
-    function sampleHeartPoint() {
-      let x, y, z, tries = 0;
-      do {
-        x = (Math.random() * 2 - 1) * 1.35;
-        y = (Math.random() * 2 - 1) * 1.25;
-        z = (Math.random() * 2 - 1) * 1.2;
-        tries++;
-      } while (!insideHeart(x, y, z) && tries < 80);
-      if (tries >= 80) {
-        const t = Math.random() * Math.PI * 2;
-        x = 16 * Math.pow(Math.sin(t), 3) * 0.05;
-        z = (13 * Math.cos(t) - 5 * Math.cos(2 * t) - 2 * Math.cos(3 * t) - Math.cos(4 * t)) * 0.05;
-        y = (Math.random() - 0.5) * 0.4;
-        return new THREE.Vector3(x * 1.2, z * 1.2 + 0.25, y * 1.2);
-      }
-      return new THREE.Vector3(x * 1.35, z * 1.35 + 0.25, y * 1.35);
-    }
+    btnYes.addEventListener("click", () => choose("yes"));
+    btnNo.addEventListener("click", () => choose("no"));
 
-    const targetsYes = new Float32Array(COUNT * 3);
-    const targetsNo = new Float32Array(COUNT * 3);
-    const starts = new Float32Array(COUNT * 3);
-    const positions = new Float32Array(COUNT * 3);
-    const colorsYes = new Float32Array(COUNT * 3);
-    const colorsNo = new Float32Array(COUNT * 3);
-    const colors = new Float32Array(COUNT * 3);
-    const sizes = new Float32Array(COUNT);
-    const phases = new Float32Array(COUNT);
-    const sides = new Float32Array(COUNT);
-    const cTip = new THREE.Color("#e0125a");
-    const cMid = new THREE.Color("#ff3d8a");
-    const cLobe = new THREE.Color("#ff7eb3");
-    const cGlow = new THREE.Color("#ffc0d8");
-    const tmp = new THREE.Color();
-
-    for (let i = 0; i < COUNT; i++) {
-      const p = sampleHeartPoint();
-      const i3 = i * 3;
-      targetsYes[i3] = p.x; targetsYes[i3 + 1] = p.y; targetsYes[i3 + 2] = p.z;
-      const side = p.x >= 0 ? 1 : -1;
-      sides[i] = side;
-      targetsNo[i3] = p.x + side * 0.8;
-      targetsNo[i3 + 1] = p.y - 0.12;
-      targetsNo[i3 + 2] = p.z;
-      if (Math.abs(p.x) < 0.18) {
-        targetsNo[i3] += side * 0.3;
-        targetsNo[i3 + 1] -= 0.3;
-      }
-      const r = 4 + Math.random() * 6;
-      const th = Math.random() * Math.PI * 2;
-      const ph = Math.acos(2 * Math.random() - 1);
-      starts[i3] = r * Math.sin(ph) * Math.cos(th);
-      starts[i3 + 1] = r * Math.sin(ph) * Math.sin(th) * 0.65;
-      starts[i3 + 2] = r * Math.cos(ph);
-      positions[i3] = starts[i3];
-      positions[i3 + 1] = starts[i3 + 1];
-      positions[i3 + 2] = starts[i3 + 2];
-
-      const h = THREE.MathUtils.clamp((p.y + 1.1) / 2.6, 0, 1);
-      if (h < 0.28) tmp.copy(cTip).lerp(cMid, h / 0.28);
-      else if (h < 0.58) tmp.copy(cMid).lerp(cLobe, (h - 0.28) / 0.3);
-      else tmp.copy(cLobe).lerp(cGlow, (h - 0.58) / 0.42);
-      colorsYes[i3] = tmp.r; colorsYes[i3 + 1] = tmp.g; colorsYes[i3 + 2] = tmp.b;
-      tmp.set("#8a6070").lerp(new THREE.Color("#c48a9c"), h);
-      colorsNo[i3] = tmp.r; colorsNo[i3 + 1] = tmp.g; colorsNo[i3 + 2] = tmp.b;
-      colors[i3] = colorsYes[i3]; colors[i3 + 1] = colorsYes[i3 + 1]; colors[i3 + 2] = colorsYes[i3 + 2];
-      sizes[i] = 0.012 + Math.random() * 0.028;
-      phases[i] = Math.random() * Math.PI * 2;
-    }
-
-    const geometry = new THREE.BufferGeometry();
-    geometry.setAttribute("position", new THREE.BufferAttribute(positions, 3));
-    geometry.setAttribute("color", new THREE.BufferAttribute(colors, 3));
-    geometry.setAttribute("aSize", new THREE.BufferAttribute(sizes, 1));
-
-    const material = new THREE.ShaderMaterial({
-      transparent: true,
-      depthWrite: false,
-      blending: THREE.AdditiveBlending,
-      vertexColors: true,
-      uniforms: {
-        uPixelRatio: { value: Math.min(window.devicePixelRatio, 2) },
-        uTime: { value: 0 },
-      },
-      vertexShader: `
-        attribute float aSize;
-        uniform float uPixelRatio;
-        uniform float uTime;
-        varying vec3 vColor;
-        varying float vAlpha;
-        void main() {
-          vColor = color;
-          vec4 mv = modelViewMatrix * vec4(position, 1.0);
-          float distFade = clamp(2.6 / max(-mv.z, 0.1), 0.45, 1.25);
-          vAlpha = 0.9 + 0.1 * sin(uTime * 1.8 + position.x * 3.5);
-          gl_PointSize = aSize * uPixelRatio * 250.0 * distFade;
-          gl_Position = projectionMatrix * mv;
-        }
-      `,
-      fragmentShader: `
-        varying vec3 vColor;
-        varying float vAlpha;
-        void main() {
-          vec2 uv = gl_PointCoord - 0.5;
-          float d = length(uv);
-          if (d > 0.5) discard;
-          float soft = pow(1.0 - smoothstep(0.0, 0.5, d), 1.45);
-          float core = smoothstep(0.35, 0.0, d);
-          gl_FragColor = vec4(vColor * (0.95 + core * 0.25), soft * vAlpha * 0.52);
-        }
-      `,
-    });
-
-    const heartGroup = new THREE.Group();
-    heartGroup.add(new THREE.Points(geometry, material));
-    scene.add(heartGroup);
-
-    function easeInOutCubic(t) {
-      return t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
-    }
-
-    function activeTargets() {
-      return mode === "yes" ? targetsYes : targetsNo;
-    }
-
-    function applyColors() {
-      const src = mode === "yes" ? colorsYes : colorsNo;
-      const arr = geometry.attributes.color.array;
-      for (let i = 0; i < COUNT * 3; i++) arr[i] = src[i];
-      geometry.attributes.color.needsUpdate = true;
-      bloom.strength = mode === "yes" ? 0.78 : 0.4;
-    }
-
-    function updateFormation(t) {
-      const pos = geometry.attributes.position.array;
-      const targets = activeTargets();
-      for (let i = 0; i < COUNT; i++) {
-        const i3 = i * 3;
-        const stagger = (i % 260) / 260;
-        const local = Math.min(1, Math.max(0, (t - stagger * 0.4) / 0.6));
-        const e = easeInOutCubic(local);
-        pos[i3] = starts[i3] + (targets[i3] - starts[i3]) * e;
-        pos[i3 + 1] = starts[i3 + 1] + (targets[i3 + 1] - starts[i3 + 1]) * e;
-        pos[i3 + 2] = starts[i3 + 2] + (targets[i3 + 2] - starts[i3 + 2]) * e;
-      }
-      geometry.attributes.position.needsUpdate = true;
-    }
-
-    function animateHeartMesh(time) {
-      const pos = geometry.attributes.position.array;
-      const targets = activeTargets();
-      if (mode === "yes") {
-        for (let i = 0; i < COUNT; i++) {
-          const i3 = i * 3;
-          const breath = 1 + Math.sin(time * 1.15 + phases[i]) * 0.01;
-          pos[i3] = targets[i3] * breath;
-          pos[i3 + 1] = targets[i3 + 1] * breath;
-          pos[i3 + 2] = targets[i3 + 2] * breath;
-        }
-      } else {
-        breakGap = Math.min(0.55, breakGap + 0.0022);
-        for (let i = 0; i < COUNT; i++) {
-          const i3 = i * 3;
-          const side = sides[i];
-          pos[i3] = targets[i3] + side * breakGap;
-          pos[i3 + 1] = targets[i3 + 1] - breakGap * 0.25;
-          pos[i3 + 2] = targets[i3 + 2];
-        }
-      }
-      geometry.attributes.position.needsUpdate = true;
-    }
-
+    // —— Animate ——
     const clock = new THREE.Clock();
-    let last = performance.now();
+    let camAngle = 0.35;
+    let lastT = 0;
 
-    function animateHeart(now) {
-      requestAnimationFrame(animateHeart);
-      if (!unlocked) return;
-      const delta = Math.min(0.05, (now - last) / 1000);
-      last = now;
-      const elapsed = clock.getElapsedTime();
-      material.uniforms.uTime.value = elapsed;
+    function animate() {
+      requestAnimationFrame(animate);
+      const t = clock.getElapsedTime();
+      const delta = Math.min(0.05, t - lastT);
+      lastT = t;
 
-      if (forming) {
-        formProgress = Math.min(1, (performance.now() - startTime) / 2800);
-        updateFormation(formProgress);
-        spinEase = THREE.MathUtils.damp(spinEase, 0.35, 1.2, delta);
-        if (formProgress >= 1) forming = false;
-      } else {
-        animateHeartMesh(elapsed);
-        spinEase = THREE.MathUtils.damp(spinEase, mode === "yes" ? 1 : 0.35, 1.8, delta);
+      if (!paused) {
+        galaxy.rotation.z = t * 0.08;
+        if (centerHeart) {
+          centerHeart.rotation.y = t * 0.35;
+          const breath = 1 + Math.sin(t * 1.6) * 0.03;
+          centerHeart.scale.setScalar(breath);
+          if (answer === "no") {
+            centerHeart.rotation.z = Math.sin(t * 1.2) * 0.08;
+          }
+        }
+
+        for (const h of orbitHearts) {
+          const d = h.userData;
+          d.angle += delta * (0.15 + (1 / d.radius) * 0.8);
+          h.position.x = Math.cos(d.angle) * d.radius;
+          h.position.z = Math.sin(d.angle) * d.radius;
+          h.position.y = d.yOffset + Math.sin(t * d.ySpeed + d.angle) * 0.45;
+          h.rotation.y += delta * d.spin;
+          h.rotation.x += delta * 0.4;
+        }
+
+        for (const s of iconMeshes) {
+          const d = s.userData;
+          d.angle += delta * (0.22 + (1 / d.radius) * 0.35);
+          s.position.x = Math.cos(d.angle) * d.radius;
+          s.position.z = Math.sin(d.angle) * d.radius;
+          s.position.y = d.yOffset + Math.sin(t * d.ySpeed + d.angle) * 0.55;
+        }
+
+        for (const s of wordSprites) {
+          const d = s.userData;
+          d.angle += delta * 0.12;
+          s.position.x = Math.cos(d.angle) * d.radius;
+          s.position.z = Math.sin(d.angle) * d.radius;
+          s.position.y = d.yOffset + Math.sin(t * d.ySpeed) * 0.35;
+          s.material.opacity = 0.55 + Math.sin(t * 2 + d.angle) * 0.25;
+        }
+
+        // slow cinematic orbit camera
+        camAngle += delta * 0.12;
+        const camR = 22;
+        camera.position.x = Math.sin(camAngle) * camR;
+        camera.position.z = Math.cos(camAngle) * camR;
+        camera.position.y = 9.5 + Math.sin(t * 0.35) * 0.8;
+        camera.lookAt(0, 1.8, 0);
       }
 
-      spinAmount += 0.22 * spinEase * delta;
-      heartGroup.rotation.y = spinAmount;
-      heartGroup.rotation.x = Math.sin(spinAmount * 0.55) * 0.1;
       composer.render();
     }
-    requestAnimationFrame(animateHeart);
-
-    function unlock(choice) {
-      if (unlocked) return;
-      unlocked = true;
-      mode = choice;
-      forming = true;
-      formProgress = 0;
-      startTime = performance.now();
-      applyColors();
-      finale.classList.add("gone");
-      heartCanvas.classList.add("on");
-      running = true;
-      speed = 1.6;
-      // dim universe a bit under the heart
-      canvas.style.opacity = "0.45";
-    }
-
-    btnYes.addEventListener("click", () => unlock("yes"));
-    btnNo.addEventListener("click", () => unlock("no"));
+    animate();
 
     window.addEventListener("resize", () => {
       camera.aspect = window.innerWidth / window.innerHeight;
